@@ -1,0 +1,103 @@
+# OSX
+#
+.DS_Store
+
+# Xcode
+#
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+project.xcworkspace
+
+# Android/IntelliJ
+#
+build/
+.idea
+.gradle
+local.properties
+*.iml
+# Java class files
+*.class
+bin/
+# node.js
+#
+node_modules/*
+!node_modules/react-native/
+node_modules/react-native/*
+!node_modules/react-native/react.gradle
+node_modules/react-native/react.gradle
+!node_modules/react-native-firebase/
+node_modules/react-native-firebase/*
+!node_modules/react-native-firebase/android/
+node_modules/react-native-firebase/android/*
+!node_modules/react-native-firebase/android/src/
+node_modules/react-native-firebase/android/src/*
+!node_modules/react-native-firebase/android/src/main/
+node_modules/react-native-firebase/android/src/main/*
+!node_modules/react-native-firebase/android/src/main/java/
+node_modules/react-native-firebase/android/src/main/java/*
+!node_modules/react-native-firebase/android/src/main/java/io/
+node_modules/react-native-firebase/android/src/main/java/io/*
+!node_modules/react-native-firebase/android/src/main/java/io/invertase/
+node_modules/react-native-firebase/android/src/main/java/io/invertase/*
+!node_modules/react-native-firebase/android/src/main/java/io/invertase/firebase/
+node_modules/react-native-firebase/android/src/main/java/io/invertase/firebase/*
+!node_modules/react-native-firebase/android/src/main/java/io/invertase/firebase/messaging/
+node_modules/react-native-firebase/android/src/main/java/io/invertase/firebase/messaging/*
+!node_modules/react-native-firebase/android/src/main/java/io/invertase/firebase/messaging/RNFirebaseMessaging.java
+
+
+npm-debug.log
+yarn-error.log
+
+# BUCK
+buck-out/
+\.buckd/
+*.keystore
+
+# fastlane
+#
+# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
+# screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/
+
+*/fastlane/report.xml
+*/fastlane/Preview.html
+*/fastlane/screenshots
+
+# Bundle artifact
+*.jsbundle
+
+.history/
+*.hprof
+/android/app/.project
+/android/app/bin
+/android/.project
+/android/app/.settings
+/android/.settings
+/android/app/.classpath
+/.vscode
+ios/Pods/
+/ios/Pods/
+android/app/src/main/assets/index.android.bundle
+/ios/Podfile
+/ios/Podfile.lock
+!/ios/Podfile
+/package-lock.json
+/ios/hookUp.xcodeproj/project.pbxproj
+ios/hookUp.xcodeproj/project.pbxproj
+/node_modules/react-native-firebase/android/src/main/java/io/invertase/firebase/messaging/RNFirebaseMessaging.java

@@ -1,0 +1,161 @@
+diff --git a/node_modules/react-native-html-to-pdf-rd/ios/RNHTMLtoPDF/RNHTMLtoPDF.m b/node_modules/react-native-html-to-pdf-rd/ios/RNHTMLtoPDF/RNHTMLtoPDF.m
+index 09fe0b4..9dfc47a 100644
+--- a/node_modules/react-native-html-to-pdf-rd/ios/RNHTMLtoPDF/RNHTMLtoPDF.m
++++ b/node_modules/react-native-html-to-pdf-rd/ios/RNHTMLtoPDF/RNHTMLtoPDF.m
+@@ -14,7 +14,7 @@
+ 
+ @implementation UIPrintPageRenderer (PDF)
+ - (NSData*) printToPDF:(NSInteger**)_numberOfPages
+-                   backgroundColor:(UIColor*)_bgColor
++       backgroundColor:(UIColor*)_bgColor
+ {
+     NSMutableData *pdfData = [NSMutableData data];
+     UIGraphicsBeginPDFContextToData( pdfData, self.paperRect, nil );
+@@ -59,6 +59,8 @@ @implementation RNHTMLtoPDF {
+     float _paddingRight;
+     BOOL _base64;
+     BOOL autoHeight;
++    BOOL _isImage;
++    float _imageHeight;
+ }
+ 
+ RCT_EXPORT_MODULE();
+@@ -101,7 +103,7 @@ - (instancetype)init
+         NSString *hex = [RCTConvert NSString:options[@"bgColor"]];
+         hex = [hex uppercaseString];
+         NSString *cString = [hex stringByTrimmingCharactersInSet:
+-            [NSCharacterSet whitespaceAndNewlineCharacterSet]];
++                             [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+         
+         if ((cString.length) == 7) {
+             NSScanner *scanner = [NSScanner scannerWithString:cString];
+@@ -171,6 +173,14 @@ - (instancetype)init
+         _paddingRight = [RCTConvert float:options[@"padding"]];
+     }
+     
++    if (options[@"isImage"]) {
++        _imageHeight = [RCTConvert float:options[@"height"]];
++        _isImage = [RCTConvert BOOL:options[@"isImage"]];
++    }else {
++        _imageHeight = 0;
++        _isImage = false;
++    }
++    
+     NSString *path = [[NSBundle mainBundle] bundlePath];
+     NSURL *baseURL = [NSURL fileURLWithPath:path];
+     dispatch_async(dispatch_get_main_queue(), ^{
+@@ -181,16 +191,81 @@ - (instancetype)init
+     _rejectBlock = reject;
+     
+ }
++
++-(void)splitPDF:(NSURL *)sourcePDFUrl withOutputName:(NSString *)outputBaseName intoDirectory:(NSString *)directory
++{
++    
++    CGPDFDocumentRef SourcePDFDocument = CGPDFDocumentCreateWithURL((__bridge CFURLRef)sourcePDFUrl);
++    
++    size_t numberOfPages = CGPDFDocumentGetNumberOfPages(SourcePDFDocument);
++    
++    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
++    
++    NSString *documentsDirectory = [paths objectAtIndex:0];
++    
++    //    NSString *filePathAndDirectory = [documentsDirectory stringByAppendingPathComponent:directory];
++    
++    //    if (![[NSFileManager defaultManager] createDirectoryAtPath:filePathAndDirectory
++    //                                   withIntermediateDirectories:NO
++    //                                                    attributes:nil
++    //                                                         error:&error])
++    //    {
++    //        NSLog(@"Create directory error: %@", error);
++    //        return;
++    //
++    //    }
++    for(int currentPage = 1; currentPage <= numberOfPages; currentPage ++ )
++    {
++        CGPDFPageRef SourcePDFPage = CGPDFDocumentGetPage(SourcePDFDocument, currentPage);
++        // CoreGraphics: MUST retain the Page-Refernce manually
++        
++        CGPDFPageRetain(SourcePDFPage);
++        
++        NSString *relativeOutputFilePath = [NSString stringWithFormat:@"%@.png", outputBaseName];
++        
++        NSString *ImageFileName = [documentsDirectory stringByAppendingPathComponent:relativeOutputFilePath];
++        
++        CGRect sourceRect = CGPDFPageGetBoxRect(SourcePDFPage, kCGPDFMediaBox);
++        
++        UIGraphicsBeginPDFContextToFile(ImageFileName, sourceRect, nil);
++        
++        UIGraphicsBeginImageContext(CGSizeMake(sourceRect.size.width,sourceRect.size.height));
++        
++        CGContextRef currentContext = UIGraphicsGetCurrentContext();
++        
++        CGContextTranslateCTM(currentContext, 0.0, sourceRect.size.height); //596,842 //640×960,
++        
++        CGContextScaleCTM(currentContext, 1.0, -1.0);
++        
++        CGContextDrawPDFPage (currentContext, SourcePDFPage); // draws the page in the graphics context
++        
++        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
++        
++        UIGraphicsEndImageContext();
++        
++        NSString *imagePath = [documentsDirectory stringByAppendingPathComponent: relativeOutputFilePath];
++        
++        [UIImagePNGRepresentation(image) writeToFile: imagePath atomically:YES];
++    }
++    
++}
++
+ -(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
+     if (webView.isLoading)
+-    return;
++        return;
+     
+     UIPrintPageRenderer *render = [[UIPrintPageRenderer alloc] init];
+     [render addPrintFormatter:webView.viewPrintFormatter startingAtPageAtIndex:0];
+     
+     // Define the printableRect and paperRect
+     // If the printableRect defines the printable area of the page
+-    CGRect paperRect = CGRectMake(0, 0, _PDFSize.width, _PDFSize.height);
++    CGRect paperRect;
++    if(_isImage) {
++        _PDFSize = CGSizeMake(_PDFSize.width, _imageHeight);
++        paperRect = CGRectMake(0, 0, _PDFSize.width, _imageHeight);
++    }else {
++        paperRect = CGRectMake(0, 0, _PDFSize.width, _PDFSize.height);
++    }
+     CGRect printableRect = CGRectMake(_paddingTop, _paddingLeft, _PDFSize.width-(_paddingLeft + _paddingRight), _PDFSize.height-(_paddingBottom + _paddingTop));
+     
+     
+@@ -206,11 +281,25 @@ -(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigati
+         if (_base64) {
+             pdfBase64 = [pdfData base64EncodedStringWithOptions:0];
+         }
+-        NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
+-                              pdfBase64, @"base64",
+-                              [NSString stringWithFormat: @"%ld", (long)_numberOfPages], @"numberOfPages",
+-                              _filePath, @"filePath", nil];
+-        _resolveBlock(data);
++        
++        if(_isImage) {
++            [self splitPDF:[NSURL fileURLWithPath:_filePath] withOutputName:@"share" intoDirectory:@"Documents"];
++            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
++            NSString *documentsPath = [paths objectAtIndex:0];
++            _filePath = [NSString stringWithFormat:@"%@/%@.png", documentsPath, @"share"];
++            NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
++                                  pdfBase64, @"base64",
++                                  [NSString stringWithFormat: @"%ld", (long)_numberOfPages], @"numberOfPages",
++                                  _filePath, @"filePath", nil];
++            _resolveBlock(data);
++        }else {
++            NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
++                                  pdfBase64, @"base64",
++                                  [NSString stringWithFormat: @"%ld", (long)_numberOfPages], @"numberOfPages",
++                                  _filePath, @"filePath", nil];
++            _resolveBlock(data);
++        }
++        
+     } else {
+         NSError *error;
+         _rejectBlock(RCTErrorUnspecified, nil, RCTErrorWithMessage(error.description));

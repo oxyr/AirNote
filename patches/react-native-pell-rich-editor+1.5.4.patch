@@ -1,0 +1,422 @@
+diff --git a/node_modules/react-native-pell-rich-editor/src/RichEditor.js b/node_modules/react-native-pell-rich-editor/src/RichEditor.js
+index 90cbc80..75c0e7c 100755
+--- a/node_modules/react-native-pell-rich-editor/src/RichEditor.js
++++ b/node_modules/react-native-pell-rich-editor/src/RichEditor.js
+@@ -1,8 +1,8 @@
+-import React, {Component} from 'react';
+-import {WebView} from 'react-native-webview';
+-import {actions, messages} from './const';
+-import {Dimensions, Keyboard, Platform, StyleSheet, TextInput, View} from 'react-native';
+-import {createHTML} from './editor';
++import React, { Component } from 'react';
++import { WebView } from 'react-native-webview';
++import { actions, messages } from './const';
++import { Dimensions, Keyboard, Platform, StyleSheet, TextInput, View } from 'react-native';
++import { createHTML } from './editor';
+ 
+ const PlatformIOS = Platform.OS === 'ios';
+ 
+@@ -31,7 +31,7 @@ export default class RichTextEditor extends Component {
+         pasteAsPlainText: false,
+         autoCapitalize: 'off',
+         defaultParagraphSeparator: 'div',
+-        editorInitializedCallback: () => {},
++        editorInitializedCallback: () => { },
+     };
+ 
+     constructor(props) {
+@@ -49,7 +49,7 @@ export default class RichTextEditor extends Component {
+         this._focus = false;
+         that.selectionChangeListeners = [];
+         const {
+-            editorStyle: {backgroundColor, color, placeholderColor, cssText, contentCSSText} = {},
++            editorStyle: { backgroundColor, color, placeholderColor, cssText, contentCSSText } = {},
+             html,
+             pasteAsPlainText,
+             onPaste,
+@@ -196,9 +196,9 @@ export default class RichTextEditor extends Component {
+ 
+     setWebHeight = (height) => {
+         // console.log(height);
+-        const {onHeightChange, useContainer} = this.props;
++        const { onHeightChange, useContainer } = this.props;
+         if (height !== this.state.height) {
+-            useContainer && this.setState({height});
++            useContainer && this.setState({ height });
+             onHeightChange && onHeightChange(height);
+         }
+     };
+@@ -211,14 +211,14 @@ export default class RichTextEditor extends Component {
+      * @private
+      */
+     _sendAction(type, action, data, options) {
+-        let jsonString = JSON.stringify({type, name: action, data, options});
++        let jsonString = JSON.stringify({ type, name: action, data, options });
+         if (this.webviewBridge) {
+             this.webviewBridge.postMessage(jsonString);
+         }
+     }
+ 
+     componentDidUpdate(prevProps, prevState, snapshot) {
+-        const {editorStyle, disabled} = this.props;
++        const { editorStyle, disabled } = this.props;
+         if (prevProps.editorStyle !== editorStyle) {
+             editorStyle && this.setContentStyle(editorStyle);
+         }
+@@ -233,19 +233,22 @@ export default class RichTextEditor extends Component {
+ 
+     renderWebView() {
+         let that = this;
+-        const {html, editorStyle, useContainer, ...rest} = that.props;
+-        const {html: viewHTML} = that.state;
++        const { html, editorStyle, useContainer, ...rest } = that.props;
++        const { html: viewHTML } = that.state;
+         // webview dark theme bug
+         const opacity = that.state.isInit ? 1 : 0;
+         return (
+             <>
+                 <WebView
+                     useWebKit={true}
+-                    scrollEnabled={false}
++                    scrollEnabled={true}
+                     hideKeyboardAccessoryView={true}
+                     keyboardDisplayRequiresUserAction={false}
+                     {...rest}
+                     ref={that.setRef}
++                    onScroll={(event)=>{
++                        console.log(event.nativeEvent.contentOffset.y);
++                    }}
+                     onMessage={that.onMessage}
+                     originWhitelist={['*']}
+                     dataDetectorTypes={'none'}
+@@ -262,17 +265,17 @@ export default class RichTextEditor extends Component {
+     }
+ 
+     render() {
+-        let {height} = this.state;
++        let { height } = this.state;
+ 
+         // useContainer is an optional prop with default value of true
+         // If set to true, it will use a View wrapper with styles and height.
+         // If set to false, it will not use a View wrapper
+-        const {useContainer, style, initialHeight = 0} = this.props;
++        const { useContainer, style, initialHeight = 0 } = this.props;
+         return useContainer ? (
+-            <View style={[style, {height: height || initialHeight}]}>{this.renderWebView()}</View>
++            <View style={[style, { height: height || initialHeight }]}>{this.renderWebView()}</View>
+         ) : (
+-            this.renderWebView()
+-        );
++                this.renderWebView()
++            );
+     }
+ 
+     //-------------------------------------------------------------------------------
+@@ -351,14 +354,30 @@ export default class RichTextEditor extends Component {
+     insertHTML(html) {
+         this._sendAction(actions.insertHTML, 'result', html);
+     }
+-
++s
+     insertLink(title, url) {
+         if (url) {
+             this.showAndroidKeyboard();
+-            this._sendAction(actions.insertLink, 'result', {title, url});
++            this._sendAction(actions.insertLink, 'result', { title, url });
+         }
+     }
+ 
++    setFontColor(color) {
++        this._sendAction(actions.setColor, 'result',color);
++    }
++
++    setFontBold() {
++        this._sendAction(actions.setBold, 'result');
++    }
++
++    setItalic() {
++        this._sendAction(actions.setItalic, 'result');
++    }
++
++    scrollMore(offset) {
++        this._sendAction(actions.scrollMore,'result',offset);
++    }
++
+     commandDOM(command) {
+         if (command) {
+             this._sendAction(actions.content, 'commandDOM', command);
+@@ -375,7 +394,7 @@ export default class RichTextEditor extends Component {
+ 
+     init() {
+         let that = this;
+-        const {initialFocus, initialContentHTML, placeholder, editorInitializedCallback, disabled} = that.props;
++        const { initialFocus, initialContentHTML, placeholder, editorInitializedCallback, disabled } = that.props;
+         initialContentHTML && that.setContentHTML(initialContentHTML);
+         placeholder && that.setPlaceholder(placeholder);
+         that.setDisable(disabled);
+@@ -385,7 +404,7 @@ export default class RichTextEditor extends Component {
+         initialFocus && !disabled && that.focusContentEditor();
+         // no visible ?
+         that._sendAction(actions.init);
+-        that.setState({isInit: true});
++        that.setState({ isInit: true });
+     }
+ 
+     /**
+diff --git a/node_modules/react-native-pell-rich-editor/src/RichToolbar.js b/node_modules/react-native-pell-rich-editor/src/RichToolbar.js
+index c170cca..b3194c5 100755
+--- a/node_modules/react-native-pell-rich-editor/src/RichToolbar.js
++++ b/node_modules/react-native-pell-rich-editor/src/RichToolbar.js
+@@ -1,11 +1,11 @@
+-import React, {Component} from 'react';
+-import {FlatList, Image, StyleSheet, TouchableOpacity, View} from 'react-native';
+-import {actions} from './const';
++import React, { Component } from 'react';
++import { FlatList, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
++import { actions } from './const';
+ 
+ export const defaultActions = [
++    // actions.setBold,
++    // actions.setItalic,
+     actions.insertImage,
+-    actions.setBold,
+-    actions.setItalic,
+     actions.insertBulletsList,
+     actions.insertOrderedList,
+     actions.insertLink,
+@@ -14,8 +14,8 @@ export const defaultActions = [
+ function getDefaultIcon() {
+     const texts = {};
+     texts[actions.insertImage] = require('../img/icon_format_media.png');
+-    texts[actions.setBold] = require('../img/icon_format_bold.png');
+-    texts[actions.setItalic] = require('../img/icon_format_italic.png');
++    // texts[actions.setBold] = require('../img/icon_format_bold.png');
++    // texts[actions.setItalic] = require('../img/icon_format_italic.png');
+     texts[actions.insertBulletsList] = require('../img/icon_format_ul.png');
+     texts[actions.insertOrderedList] = require('../img/icon_format_ol.png');
+     texts[actions.insertLink] = require('../img/icon_format_link.png');
+@@ -65,37 +65,37 @@ export default class RichToolbar extends Component {
+     }
+ 
+     static getDerivedStateFromProps(nextProps, prevState) {
+-        const {actions} = nextProps;
++        const { actions } = nextProps;
+         if (actions !== prevState.actions) {
+-            let {selectedItems = []} = prevState;
++            let { selectedItems = [] } = prevState;
+             return {
+                 actions,
+-                data: actions.map((action) => ({action, selected: selectedItems.includes(action)})),
++                data: actions.map((action) => ({ action, selected: selectedItems.includes(action) })),
+             };
+         }
+         return null;
+     }
+ 
+     componentDidMount() {
+-        const {editor: {current: editor} = {current: this.props?.getEditor()}} = this.props;
++        const { editor: { current: editor } = { current: this.props?.getEditor() } } = this.props;
+         if (!editor) {
+             throw new Error('Toolbar has no editor!');
+         } else {
+             editor.registerToolbar((selectedItems) => this.setSelectedItems(selectedItems));
+-            this.setState({editor});
++            this.setState({ editor });
+         }
+     }
+ 
+     componentWillUnmount() {
+-        this.setState({editor: null});
++        this.setState({ editor: null });
+     }
+ 
+     setSelectedItems(items) {
+-        const {selectedItems, editor} = this.state;
++        const { selectedItems, editor } = this.state;
+         if (editor && items !== selectedItems) {
+             this.setState({
+                 items,
+-                data: this.state.actions.map((action) => ({action, selected: items.includes(action)})),
++                data: this.state.actions.map((action) => ({ action, selected: items.includes(action) })),
+             });
+         }
+     }
+@@ -123,18 +123,21 @@ export default class RichToolbar extends Component {
+     }
+ 
+     _onPress(action) {
+-        const {onPressAddImage, onInsertLink} = this.props;
+-        const {editor} = this.state;
++        const { onPressAddImage, onInsertLink } = this.props;
++        const { editor } = this.state;
+         if (!editor) return;
+ 
+         switch (action) {
+             case actions.insertLink:
+                 if (onInsertLink) return onInsertLink();
+             case actions.setBold:
++            case actions.setColor:
+             case actions.setItalic:
+             case actions.insertBulletsList:
+             case actions.insertOrderedList:
+             case actions.checkboxList:
++            case actions.checkDone:
++            case actions.scrollMore:
+             case actions.setUnderline:
+             case actions.heading1:
+             case actions.heading2:
+@@ -169,32 +172,32 @@ export default class RichToolbar extends Component {
+     _defaultRenderAction(action, selected) {
+         let that = this;
+         const icon = that._getButtonIcon(action);
+-        const {iconSize = 50, disabled} = that.props;
++        const { iconSize = 50, disabled } = that.props;
+         const style = selected ? that._getButtonSelectedStyle() : that._getButtonUnselectedStyle();
+         const tintColor = disabled
+             ? that.props.disabledIconTint
+             : selected
+-            ? that.props.selectedIconTint
+-            : that.props.iconTint;
++                ? that.props.selectedIconTint
++                : that.props.iconTint;
+         return (
+             <TouchableOpacity
+                 key={action}
+                 disabled={disabled}
+-                style={[{width: iconSize, justifyContent: 'center'}, style]}
++                style={[{ width: iconSize, justifyContent: 'center' }, style]}
+                 onPress={() => that._onPress(action)}>
+                 {icon ? (
+                     typeof icon === 'function' ? (
+-                        icon({selected, disabled, tintColor, iconSize})
++                        icon({ selected, disabled, tintColor, iconSize })
+                     ) : (
+-                        <Image
+-                            source={icon}
+-                            style={{
+-                                tintColor: tintColor,
+-                                height: iconSize,
+-                                width: iconSize,
+-                            }}
+-                        />
+-                    )
++                            <Image
++                                source={icon}
++                                style={{
++                                    tintColor: tintColor,
++                                    height: iconSize,
++                                    width: iconSize,
++                                }}
++                            />
++                        )
+                 ) : null}
+             </TouchableOpacity>
+         );
+@@ -207,10 +210,11 @@ export default class RichToolbar extends Component {
+     }
+ 
+     render() {
+-        const {style, disabled, children} = this.props;
++        const { style, disabled, children } = this.props;
+         const vStyle = [styles.barContainer, style, disabled && this._getButtonDisabledStyle()];
+         return (
+             <View style={vStyle}>
++                {children}
+                 <FlatList
+                     horizontal
+                     keyboardShouldPersistTaps={'always'}
+@@ -218,9 +222,8 @@ export default class RichToolbar extends Component {
+                     data={this.state.data}
+                     alwaysBounceHorizontal={false}
+                     showsHorizontalScrollIndicator={false}
+-                    renderItem={({item}) => this._renderAction(item.action, item.selected)}
++                    renderItem={({ item }) => this._renderAction(item.action, item.selected)}
+                 />
+-                {children}
+             </View>
+         );
+     }
+diff --git a/node_modules/react-native-pell-rich-editor/src/const.js b/node_modules/react-native-pell-rich-editor/src/const.js
+index 915aa10..7b7a19c 100755
+--- a/node_modules/react-native-pell-rich-editor/src/const.js
++++ b/node_modules/react-native-pell-rich-editor/src/const.js
+@@ -2,7 +2,7 @@ export const actions = {
+     content: 'content',
+ 
+     updateHeight: 'UPDATE_HEIGHT',
+-
++    setColor:'color',
+     setBold: 'bold',
+     setItalic: 'italic',
+     setUnderline: 'underline',
+@@ -22,6 +22,8 @@ export const actions = {
+     insertBulletsList: 'unorderedList',
+     insertOrderedList: 'orderedList',
+     checkboxList: 'checkboxList',
++    checkDone: 'checkDone',
++    scrollMore:'scrollMore',
+     insertLink: 'link',
+     insertText: 'text',
+     insertHTML: 'html',
+diff --git a/node_modules/react-native-pell-rich-editor/src/editor.js b/node_modules/react-native-pell-rich-editor/src/editor.js
+index d42e29b..331feb6 100644
+--- a/node_modules/react-native-pell-rich-editor/src/editor.js
++++ b/node_modules/react-native-pell-rich-editor/src/editor.js
+@@ -166,6 +166,18 @@ function createHTML(options = {}) {
+             orderedList: { state: function() { return queryCommandState('insertOrderedList'); }, result: function() { return exec('insertOrderedList'); }},
+             unorderedList: { state: function() { return queryCommandState('insertUnorderedList'); },result: function() { return exec('insertUnorderedList'); }},
+             code: { result: function() { return exec(formatBlock, '<pre>'); }},
++            color: { 
++                result: function(color) { 
++                    var selection = window.getSelection();
++                    var range = document.createRange();
++                    range.setStart(anchorNode, 0);
++                    range.setEnd(focusNode, anchorNode.length);
++                    selection.addRange(range);
++                    exec('forecolor',color);
++                    selection.removeAllRanges();
++                    return;  
++                }
++            },
+             line: { result: function() { return exec('insertHorizontalRule'); }},
+             link: {
+                 result: function(data) {
+@@ -205,6 +217,14 @@ function createHTML(options = {}) {
+                     }
+                 }
+             },
++            scrollMore: {
++                result: function(offset) {
++                    if(focusNode.parentNode.offsetTop > 240) {
++                        document.documentElement.scroll({ top: document.documentElement.scrollTop
++                            + offset, behavior: 'smooth' })
++                    }
++                }
++            },
+             checkboxList: {
+                 result: function() {
+                     var pNode;
+@@ -223,6 +243,17 @@ function createHTML(options = {}) {
+                     }
+                 }
+             },
++            checkDone: {
++                result: function() {
++                    var selection = window.getSelection();
++                    var range = document.createRange();
++                    range.setStart(anchorNode, 0);
++                    range.setEnd(focusNode, anchorNode.length);
++                    selection.addRange(range);
++                    exec('strikeThrough');
++                    selection.removeAllRanges();
++                }
++            },
+             content: {
+                 setDisable: function(dis){ this.blur(); editor.content.contentEditable = !dis},
+                 setHtml: function(html) { editor.content.innerHTML = html; },
+@@ -421,4 +452,4 @@ function createHTML(options = {}) {
+ }
+ 
+ const HTML = createHTML();
+-export {HTML, createHTML};
++export { HTML, createHTML };
