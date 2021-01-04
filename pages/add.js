@@ -230,7 +230,7 @@ class Add extends Component {
         this.props.navigation.goBack();
     };
 
-    async createPDF(image=false) {
+    async createPDF(image = false) {
         var title = ''
         if (this.state.title != '' || this.state.title != 'No Title') {
             title = "<h1 style=\"text-align:center\">" + this.state.title + "</h1>"
@@ -239,13 +239,13 @@ class Add extends Component {
         Published by <span style=\"color:#4BBBFA;
         text-decoration: none;font-size:16px\">AirNote</span></div>`;
         let options = {
-            html: image? title + "" + this.state.content + footer:
+            html: image ? title + "" + this.state.content + footer :
                 title + "" + this.state.content,
             fileName: 'NoteLine_' + this.state.title,
             directory: 'Documents',
-            
-        }; 
-        if(image) {
+
+        };
+        if (image) {
             options.height = this.state.editorHeight;
             options.isImage = true;
         }
@@ -287,7 +287,7 @@ class Add extends Component {
             .then((content) => {
 
                 // content 为base64数据
-                console.log("content", content)
+                console.log("content", file.filePath)
                 const shareOptions = {
                     title: "NoteLine Share",
                     // subject: shareMessage,
@@ -402,7 +402,8 @@ class Add extends Component {
                             this.setState({
                                 showNavPanel: false
                             }, () => {
-                                that.createPDF(true)
+                                // that.createPDF(true) 
+                                that.richText.current.snapFullShot()
                             })
                         }}>
                         <Image
@@ -556,6 +557,10 @@ class Add extends Component {
 
     handleKeyDown = data => {
         // console.log('KeyDown:', data);
+    };
+
+    handleSnap = (data) => {
+        this.share(data);
     };
 
     handleMessage = ({ type, id, data }) => {
@@ -750,7 +755,7 @@ class Add extends Component {
                 <StatusBar
                     backgroundColor="#ffffff"
                     barStyle="dark-content"
-                />                
+                />
                 <InsertLinkModal
                     placeholderColor={placeholderColor}
                     color={color}
@@ -879,6 +884,7 @@ class Add extends Component {
                         onKeyUp={that.handleKeyUp.bind(this)}
                         onKeyDown={that.handleKeyDown.bind(this)}
                         onMessage={that.handleMessage.bind(this)}
+                        onSnapFull={that.handleSnap.bind(this)}
                         onFocus={that.handleFocus.bind(this)}
                         onBlur={that.handleBlur.bind(this)}
                         pasteAsPlainText={true}
@@ -1002,7 +1008,9 @@ class Add extends Component {
                                     showSubRichTool: true,
                                     toolMarginTop: 50
                                 }, () => {
-
+                                    if (!this.state.isTitleEdit) {
+                                        this.richText?.current?.scrollMore(140);
+                                    }
                                 })
                                 this._showAnimatePanelView();
                             } else {

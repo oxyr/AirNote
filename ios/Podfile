@@ -16,4 +16,5 @@ target 'NoteLine' do
   post_install do |installer|
     flipper_post_install(installer)
   end
+  pod 'SnapshotKit', :path => '../ios/SnapshotKit'
 end
