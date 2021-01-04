@@ -1,5 +1,18 @@
+diff --git a/node_modules/react-native-pell-rich-editor/index.d.ts b/node_modules/react-native-pell-rich-editor/index.d.ts
+index e9fe454..29e0042 100644
+--- a/node_modules/react-native-pell-rich-editor/index.d.ts
++++ b/node_modules/react-native-pell-rich-editor/index.d.ts
+@@ -163,6 +163,8 @@ declare module 'react-native-pell-rich-editor' {
+ 
+         insertHTML: (html: string) => void;
+ 
++        snapFullShot: ()=>void;
++
+         /**
+          * $ = document.querySelector
+          * this.richText.current?.commandDOM(`$('#title').style.color='${color}'`);
 diff --git a/node_modules/react-native-pell-rich-editor/src/RichEditor.js b/node_modules/react-native-pell-rich-editor/src/RichEditor.js
-index 90cbc80..75c0e7c 100755
+index 90cbc80..df8735e 100755
 --- a/node_modules/react-native-pell-rich-editor/src/RichEditor.js
 +++ b/node_modules/react-native-pell-rich-editor/src/RichEditor.js
 @@ -1,8 +1,8 @@
@@ -34,11 +47,27 @@ index 90cbc80..75c0e7c 100755
              html,
              pasteAsPlainText,
              onPaste,
-@@ -196,9 +196,9 @@ export default class RichTextEditor extends Component {
+@@ -185,24 +185,31 @@ export default class RichTextEditor extends Component {
+                 case messages.OFFSET_HEIGHT:
+                     this.setWebHeight(data);
+                     break;
++                case messages.SNAP_FULL:
++                    props.onSnapFull && props.onSnapFull(message);
++                    break;
+                 default:
+                     props.onMessage && props.onMessage(message);
+                     break;
+             }
+         } catch (e) {
+-            //alert('NON JSON MESSAGE');
++            console.log(event.nativeEvent,e)
+         }
+     }
  
      setWebHeight = (height) => {
-         // console.log(height);
+-        // console.log(height);
 -        const {onHeightChange, useContainer} = this.props;
++        console.log(height);
 +        const { onHeightChange, useContainer } = this.props;
          if (height !== this.state.height) {
 -            useContainer && this.setState({height});
@@ -46,7 +75,15 @@ index 90cbc80..75c0e7c 100755
              onHeightChange && onHeightChange(height);
          }
      };
-@@ -211,14 +211,14 @@ export default class RichTextEditor extends Component {
+ 
++    snapFullShot() {
++        this.webviewBridge.goBack();
++    }
++
+     /**
+      * @param {String} type
+      * @param {String} action
+@@ -211,14 +218,14 @@ export default class RichTextEditor extends Component {
       * @private
       */
      _sendAction(type, action, data, options) {
@@ -63,8 +100,14 @@ index 90cbc80..75c0e7c 100755
          if (prevProps.editorStyle !== editorStyle) {
              editorStyle && this.setContentStyle(editorStyle);
          }
-@@ -233,19 +233,22 @@ export default class RichTextEditor extends Component {
+@@ -231,21 +238,28 @@ export default class RichTextEditor extends Component {
+         this.webviewBridge = ref;
+     }
  
++    setVRef(ref) {
++        this.webviewBridge = ref;
++    }
++
      renderWebView() {
          let that = this;
 -        const {html, editorStyle, useContainer, ...rest} = that.props;
@@ -83,13 +126,13 @@ index 90cbc80..75c0e7c 100755
                      keyboardDisplayRequiresUserAction={false}
                      {...rest}
                      ref={that.setRef}
-+                    onScroll={(event)=>{
++                    onScroll={(event) => {
 +                        console.log(event.nativeEvent.contentOffset.y);
 +                    }}
                      onMessage={that.onMessage}
                      originWhitelist={['*']}
                      dataDetectorTypes={'none'}
-@@ -262,17 +265,17 @@ export default class RichTextEditor extends Component {
+@@ -262,17 +276,17 @@ export default class RichTextEditor extends Component {
      }
  
      render() {
@@ -112,12 +155,12 @@ index 90cbc80..75c0e7c 100755
      }
  
      //-------------------------------------------------------------------------------
-@@ -351,14 +354,30 @@ export default class RichTextEditor extends Component {
+@@ -351,14 +365,30 @@ export default class RichTextEditor extends Component {
      insertHTML(html) {
          this._sendAction(actions.insertHTML, 'result', html);
      }
 -
-+s
++    s
      insertLink(title, url) {
          if (url) {
              this.showAndroidKeyboard();
@@ -127,7 +170,7 @@ index 90cbc80..75c0e7c 100755
      }
  
 +    setFontColor(color) {
-+        this._sendAction(actions.setColor, 'result',color);
++        this._sendAction(actions.setColor, 'result', color);
 +    }
 +
 +    setFontBold() {
@@ -139,13 +182,13 @@ index 90cbc80..75c0e7c 100755
 +    }
 +
 +    scrollMore(offset) {
-+        this._sendAction(actions.scrollMore,'result',offset);
++        this._sendAction(actions.scrollMore, 'result', offset);
 +    }
 +
      commandDOM(command) {
          if (command) {
              this._sendAction(actions.content, 'commandDOM', command);
-@@ -375,7 +394,7 @@ export default class RichTextEditor extends Component {
+@@ -375,7 +405,7 @@ export default class RichTextEditor extends Component {
  
      init() {
          let that = this;
@@ -154,12 +197,13 @@ index 90cbc80..75c0e7c 100755
          initialContentHTML && that.setContentHTML(initialContentHTML);
          placeholder && that.setPlaceholder(placeholder);
          that.setDisable(disabled);
-@@ -385,7 +404,7 @@ export default class RichTextEditor extends Component {
+@@ -385,7 +415,8 @@ export default class RichTextEditor extends Component {
          initialFocus && !disabled && that.focusContentEditor();
          // no visible ?
          that._sendAction(actions.init);
 -        that.setState({isInit: true});
 +        that.setState({ isInit: true });
++        
      }
  
      /**
@@ -337,7 +381,7 @@ index c170cca..b3194c5 100755
          );
      }
 diff --git a/node_modules/react-native-pell-rich-editor/src/const.js b/node_modules/react-native-pell-rich-editor/src/const.js
-index 915aa10..7b7a19c 100755
+index 915aa10..a44045e 100755
 --- a/node_modules/react-native-pell-rich-editor/src/const.js
 +++ b/node_modules/react-native-pell-rich-editor/src/const.js
 @@ -2,7 +2,7 @@ export const actions = {
@@ -358,6 +402,12 @@ index 915aa10..7b7a19c 100755
      insertLink: 'link',
      insertText: 'text',
      insertHTML: 'html',
+@@ -62,4 +64,5 @@ export const messages = {
+     LINK_TOUCHED: 'LINK_TOUCHED',
+     SELECTED_TEXT_CHANGED: 'SELECTED_TEXT_CHANGED',
+     OFFSET_HEIGHT: 'OFFSET_HEIGHT',
++    SNAP_FULL: 'SNAP_FULL',
+ };
 diff --git a/node_modules/react-native-pell-rich-editor/src/editor.js b/node_modules/react-native-pell-rich-editor/src/editor.js
 index d42e29b..331feb6 100644
 --- a/node_modules/react-native-pell-rich-editor/src/editor.js

@@ -249,7 +249,7 @@ class Add extends Component {
             options.height = this.state.editorHeight;
             options.isImage = true;
         }
-        // EasyLoading.show('Processing...');
+        EasyLoading.show('Processing...');
         let file = await RNHTMLtoPDF.convert(options)
         console.log(file.filePath);
 
@@ -283,6 +283,7 @@ class Add extends Component {
     }
 
     share = async (file) => {
+        EasyLoading.dismiss();
         RNFS.readFile(file.filePath, 'base64')
             .then((content) => {
 
@@ -403,7 +404,17 @@ class Add extends Component {
                                 showNavPanel: false
                             }, () => {
                                 // that.createPDF(true) 
-                                that.richText.current.snapFullShot()
+                                EasyLoading.show('Processing...');
+                                if (this.state.title != '' || this.state.title != 'No Title') {
+                                    title = "<h3 style=\"text-align:center\">" + this.state.title + "</h3>"
+                                }
+                                var footer = `<div style=\"text-align:center;font-size:12px;margin-top:100px;\">
+                                Published by <span style=\"color:#4BBBFA;
+                                text-decoration: none;font-size:16px\">AirNote</span></div>`;
+                                that.richText.current.setContentHTML(title+this.state.content+footer);
+                                setTimeout(()=>{
+                                    that.richText.current.snapFullShot()
+                                },1500)
                             })
                         }}>
                         <Image
@@ -560,6 +571,8 @@ class Add extends Component {
     };
 
     handleSnap = (data) => {
+
+        this.richText.current.setContentHTML(this.state.content);
         this.share(data);
     };
 
@@ -863,8 +876,6 @@ class Add extends Component {
                             }}>{this.state.title.length > 28 ?
                                 this.state.title.substring(0, 16) + "..." : (this.state.title == "" ? "Enter your title...." : this.state.title)}</Text>
                         </TouchableOpacity>)}
-
-
                     </View>
 
                     <RichEditor
