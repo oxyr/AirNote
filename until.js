@@ -1,4 +1,7 @@
-import { Dimensions, Platform, StatusBar, DeviceEventEmitter } from "react-native";
+import {
+    Dimensions, Platform, StatusBar, DeviceEventEmitter,
+    Appearance
+} from "react-native";
 import ExtraDimensions from 'react-native-extra-dimensions-android';
 
 // 设备宽度，单位 dp
@@ -30,4 +33,19 @@ export function getHeight() {
         ? ExtraDimensions.getRealWindowHeight()
         : Dimensions.get('window').height
     return height
+}
+
+export function getNavStyle() {
+    const theme =  Appearance.getColorScheme();
+    const contentStyle = {
+        backgroundColor: '#161819',
+        color: '#fff',
+        iconTint:'#fff'
+    };
+    if (theme === 'light') {
+        contentStyle.backgroundColor = mainBgColor;
+        contentStyle.color = '#000';
+        contentStyle.iconTint = '#161819'
+    }
+    return contentStyle;
 }

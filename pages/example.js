@@ -180,6 +180,7 @@ class Example extends Component {
 
     createContentStyle(theme) {
         // Can be selected for more situations (cssText or contentCSSText).
+        
         const contentStyle = {
             backgroundColor: '#000033',
             color: '#fff',

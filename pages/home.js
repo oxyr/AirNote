@@ -32,7 +32,13 @@ import CheckBox from '@react-native-community/checkbox';
 class Home extends Component {
     constructor(props) {
         super(props);
+        const theme = props.theme || Appearance.getColorScheme();
+        const contentStyle = this.createContentStyle(theme);
+
+        console.log(theme)
         this.state = {
+            theme: theme, 
+            contentStyle,
             documents: [],
             showPanel: false,
             selectedNote: "",
@@ -49,11 +55,12 @@ class Home extends Component {
 
     }
     static navigationOptions = ({ route, navigation }) => {
+        const navStyle = actions.getNavStyle();
         const { params = {} } = route;
         return {
             headerTitle: "Documents",
             headerStyle: {
-                backgroundColor: actions.mainBgColor,
+                backgroundColor: navStyle.backgroundColor,
                 elevation: 0,
                 borderBottomWidth: 0,
                 shadowOpacity: 0,
@@ -66,18 +73,46 @@ class Home extends Component {
                         style={{ justifyContent: 'center', marginEnd: 10 }}
                     >
                         {params.isChoice ? (<Text
-                            style={{ color: actions.mainColor, fontSize: 20 }}>Done</Text>) : (<Image
+                            style={{ color: navStyle.color, fontSize: 20 }}>Done</Text>) : (<Image
                                 source={require("../assets/icon_menu.png")}
-                                tintColor={actions.mainColor}
-                                style={{ width: 30, height: 30, marginStart: 0 }}
+                                style={{ width: 30, height: 30, marginStart: 0,
+                                tintColor:navStyle.iconTint }}
                             />)}
 
                     </TouchableOpacity>
                 </View>
             ),
-            headerTintColor: actions.mainColor,
+            headerTintColor: navStyle.color,
         };
     };
+
+    createContentStyle(theme) {
+        // Can be selected for more situations (cssText or contentCSSText).
+        const contentStyle = {
+            backgroundColor: '#161819',
+            color: '#fff',
+            placeholderColor: 'gray',
+            // cssText: '#editor {background-color: #f3f3f3}', // initial valid
+            contentCSSText: 'font-size: 16px;',
+            itemBgColor:'#222324', // initial valid
+            itemDateColor:'#A5A6A8',
+            panelBg:"#272829",
+            panelBtnBg:"#373939",
+            lineColor:"#343637",
+
+        };
+        if (theme === 'light') {
+            contentStyle.backgroundColor = actions.mainBgColor;
+            contentStyle.color = '#000';
+            contentStyle.placeholderColor = '#a9a9a9';
+            contentStyle.itemBgColor = '#F6F6F6';
+            contentStyle.itemDateColor= '#A5A6A8';
+            contentStyle.panelBg= '#fff';
+            contentStyle.panelBtnBg= '#F5F5F5';
+            contentStyle.lineColor='#F3F4F4'
+        }
+        return contentStyle;
+    }
 
 
 
@@ -329,11 +364,14 @@ class Home extends Component {
         }, 4500);
     }
     documentsGrid({ item, index }) {
+        const {contentStyle, theme} = this.state;
+        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor} = contentStyle;
+        const themeBg = {backgroundColor};
         return (
             <TouchableOpacity style={{
                 flexDirection: "column",
                 backgroundColor: this.state.checklist[index].check ?
-                    'rgba(35,31,32,0.2)' : "#F6F6F6",
+                    'rgba(35,31,32,0.2)' : itemBgColor,
                 alignItems: "center",
                 width: width / 2 - 20,
                 margin: 10,
@@ -346,7 +384,7 @@ class Home extends Component {
                 shadowOpacity: 0.20,
                 shadowRadius: 1.41,
                 borderWidth: this.state.checklist[index].check ? 1 : 0,
-                borderColor: this.state.checklist[index].check ? actions.mainColor : 'transparent',
+                borderColor: this.state.checklist[index].check ? color : 'transparent',
                 // backgroundColor:this.state.isChoice?'rgba(35,31,32,0.3)':'#F6F6F6',
                 elevation: 2,
             }}
@@ -371,9 +409,9 @@ class Home extends Component {
                         })
                     }}
                     style={{ height: 22, width: 22 }}
-                    onCheckColor={"#000"}
+                    onCheckColor={color}
                     tintColor={"gray"}
-                    onTintColor={"#000"}
+                    onTintColor={color}
                 /></View>) : (<TouchableOpacity style={{ position: "absolute", top: 4, right: 0, width: 50, height: 80, zIndex: 1000, }}
                     onPress={() => {
                         this.setState({
@@ -408,11 +446,11 @@ class Home extends Component {
                 <View style={{ marginStart: 0, flex: 1, justifyContent: "center", position: "relative", elevation: 1000 }}>
                     <Text style={{
                         paddingLeft: 22, paddingRight: 22,
-                        color: "#000", fontSize: 16, marginTop: 0, height: 30, textAlign: "center"
+                        color: color, fontSize: 16, marginTop: 0, height: 30, textAlign: "center"
                     }}>{item.title && item.title.length > 10 ? item.title.substring(0, 9) + "..." :
                         item.title}</Text>
                     <Text style={{
-                        color: "#A5A6A8", fontSize: 14, marginTop: 0, marginBottom: 0, height: 30
+                        color: itemDateColor, fontSize: 14, marginTop: 0, marginBottom: 0, height: 30
                         , textAlign: "center"
                     }}>{moment(item.createTime).format("YYYY-MM-DD HH:mm")}</Text>
                 </View>
@@ -422,10 +460,14 @@ class Home extends Component {
 
     }
     documentsItems({ item, index }) {
+        const {contentStyle, theme} = this.state;
+        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor,
+        lineColor} = contentStyle;
+        const themeBg = {backgroundColor};
         return (
             <TouchableOpacity style={{
                 flexDirection: "row", backgroundColor: this.state.checklist[index].check ?
-                    'rgba(35,31,32,0.2)' : "#fff", height: 80
+                    'rgba(35,31,32,0.2)' : itemBgColor, height: 80
                 , alignItems: "center",
                 borderColor: this.state.checklist[index].check ? actions.mainColor : "transparent",
                 borderBottomWidth: this.state.checklist[index].check ? 1 : 0,
@@ -450,8 +492,8 @@ class Home extends Component {
                 </View>
 
                 <View style={{ marginStart: 0, flex: 1, position: "relative", elevation: 1000 }}>
-                    <Text style={{ color: "#000", fontSize: 18, marginTop: 10, height: 30, }}>{item.title && item.title.length > 10 ? item.title.substring(0, 12) + "..." : item.title}</Text>
-                    <Text style={{ color: "#A5A6A8", fontSize: 14, marginTop: 4, marginBottom: 0, height: 30 }}>{moment(item.createTime).format("YYYY-MM-DD HH:mm:ss")}</Text>
+                    <Text style={{ color: color, fontSize: 18, marginTop: 10, height: 30, }}>{item.title && item.title.length > 10 ? item.title.substring(0, 12) + "..." : item.title}</Text>
+                    <Text style={{ color: itemDateColor, fontSize: 14, marginTop: 4, marginBottom: 0, height: 30 }}>{moment(item.createTime).format("YYYY-MM-DD HH:mm:ss")}</Text>
                     {this.state.isChoice ? (<View style={{ position: "absolute", top: 26, right: 20, zIndex: 2000, }}><CheckBox
                         disabled={false}
                         value={this.state.checklist[index].check}
@@ -471,9 +513,9 @@ class Home extends Component {
                             })
                         }}
                         style={{ height: 22, width: 22 }}
-                        onCheckColor={"#000"}
+                        onCheckColor={color}
                         tintColor={"gray"}
-                        onTintColor={"#000"}
+                        onTintColor={color}
                     /></View>) : (
                             <TouchableOpacity style={{ position: "absolute", top: 4, right: 0, width: 50, height: 80, zIndex: 1000, }}
                                 onPress={() => {
@@ -495,7 +537,7 @@ class Home extends Component {
                         )}
 
 
-                    <View style={{ height: 1, borderBottomWidth: 1, borderColor: "#F3F4F4", marginTop: 0 }}></View>
+                    <View style={{ height: 1, borderBottomWidth: 1, borderColor: lineColor, marginTop: 0 }}></View>
                 </View>
 
             </TouchableOpacity>
@@ -503,6 +545,10 @@ class Home extends Component {
     }
 
     renderNavPanel() {
+        const {contentStyle, theme} = this.state;
+        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor
+        ,panelBg,panelBtnBg,lineColor} = contentStyle;
+        const themeBg = {backgroundColor};
         if (this.state.showNavPanel) {
             return (<TouchableOpacity style={{
                 position: "absolute",
@@ -522,7 +568,7 @@ class Home extends Component {
                     })
                 }}>
                 <Animated.View style={{
-                    backgroundColor: "white",
+                    backgroundColor: panelBg,
                     width: "70%",
                     borderRadius: 10,
                     shadowColor: "#000",
@@ -563,7 +609,7 @@ class Home extends Component {
                             fontSize: 18,
                             paddingTop: 12,
                             paddingBottom: 12,
-                            color: actions.mainColor,
+                            color: color,
                             marginStart: 20,
                             marginTop: 0,
                             flex: 1
@@ -575,11 +621,12 @@ class Home extends Component {
                                 alignItems: "center",
                                 width: 20,
                                 height: 20,
-                                marginEnd: 20
+                                marginEnd: 20,
+                                tintColor:theme==='dark'?'white':'#231F20'
                             }}></Image>
                     </TouchableOpacity>
                     <View style={{
-                        height: 1, backgroundColor: "#F3F4F4", marginStart: 20,
+                        height: 1, backgroundColor: lineColor, marginStart: 20,
                         marginEnd: 20
                     }}></View>
 
@@ -602,32 +649,33 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: "black",
+                                    borderColor: theme !== 'dark'?"black":'white',
                                     borderWidth: this.state.sort == 0 ? 1 : 0,
-                                    backgroundColor: this.state.sort == 0 ? "rgba(35,31,32,0.2)" : "#F5F5F5"
+                                    backgroundColor: this.state.sort == 0 ? "rgba(35,31,32,0.2)" : panelBtnBg
                                 }}
                                 onPress={() => {
                                     this.setNavPanel(0, this.state.viewType);
                                 }}>
-                                <Text style={{ color: actions.mainColor, fontSize: 16 }}>By Time</Text>
+                                <Text style={{ color: color, fontSize: 16 }}>By Time</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
+                                    borderColor: theme !== 'dark'?"black":'white',
                                     borderWidth: this.state.sort == 1 ? 1 : 0,
-                                    backgroundColor: this.state.sort == 1 ? "rgba(35,31,32,0.2)" : "#F5F5F5"
+                                    backgroundColor: this.state.sort == 1 ? "rgba(35,31,32,0.2)" : panelBtnBg
                                 }}
                                 onPress={() => {
                                     this.setNavPanel(1, this.state.viewType);
                                 }}>
-                                <Text style={{ color: actions.mainColor, fontSize: 16 }}>By Name</Text>
+                                <Text style={{ color: color, fontSize: 16 }}>By Name</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                     <View style={{
-                        height: 1, backgroundColor: "#F3F4F4", marginStart: 20,
+                        height: 1, backgroundColor: lineColor, marginStart: 20,
                         marginEnd: 20, marginTop: 10
                     }}></View>
                     <View style={{
@@ -649,9 +697,9 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: "black",
+                                    borderColor: theme !== 'dark'?"black":'white',
                                     borderWidth: this.state.viewType == 0 ? 1 : 0,
-                                    backgroundColor: this.state.viewType == 0 ? "rgba(35,31,32,0.2)" : "#F5F5F5",
+                                    backgroundColor: this.state.viewType == 0 ? "rgba(35,31,32,0.2)" : panelBtnBg,
                                     flexDirection: "row"
                                 }}
                                 onPress={() => {
@@ -664,18 +712,20 @@ class Home extends Component {
                                         alignItems: "center",
                                         width: 22,
                                         height: 22,
-                                        marginEnd: 10
+                                        marginEnd: 10,
+                                        tintColor:color,
                                     }}></Image>
-                                <Text style={{ color: actions.mainColor, fontSize: 16 }}>List</Text>
+                                <Text style={{ color: color, fontSize: 16 }}>List</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
+                                    borderColor: theme !== 'dark'?"black":'white',
                                     flexDirection: "row",
                                     borderWidth: this.state.viewType == 1 ? 1 : 0,
-                                    backgroundColor: this.state.viewType == 1 ? "rgba(35,31,32,0.2)" : "#F5F5F5",
+                                    backgroundColor: this.state.viewType == 1 ? "rgba(35,31,32,0.2)" : panelBtnBg,
                                 }}
                                 onPress={() => {
                                     this.setNavPanel(this.state.sort, 1);
@@ -688,9 +738,10 @@ class Home extends Component {
                                         alignItems: "center",
                                         width: 22,
                                         height: 22,
-                                        marginEnd: 10
+                                        marginEnd: 10,
+                                        tintColor:color,
                                     }}></Image>
-                                <Text style={{ color: actions.mainColor, fontSize: 16 }}>Grid</Text>
+                                <Text style={{ color: color, fontSize: 16 }}>Grid</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -703,6 +754,10 @@ class Home extends Component {
     }
 
     renderEditPanel() {
+        const {contentStyle, theme} = this.state;
+        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor
+        ,panelBg,panelBtnBg,lineColor} = contentStyle;
+        const themeBg = {backgroundColor};
         if (this.state.isChoice) {
             return (<TouchableOpacity style={{
                 position: "absolute",
@@ -724,7 +779,7 @@ class Home extends Component {
 
                 }}>
                 <Animated.View style={{
-                    backgroundColor: "white",
+                    backgroundColor: panelBg,
                     height: 160,
                     width: width - 20,
                     borderRadius: 10,
@@ -744,12 +799,12 @@ class Home extends Component {
                         fontSize: 24,
                         paddingTop: 12,
                         paddingBottom: 12,
-                        color: "#000",
+                        color: color,
                         marginStart: 20,
                         marginTop: 10
                     }}>{this.state.checkedCount + " selected"}</Text>
                     <View style={{
-                        height: 1, backgroundColor: "#F3F4F4", marginStart: 20,
+                        height: 1, backgroundColor: lineColor, marginStart: 20,
                         marginEnd: 20
                     }}></View>
                     <View style={{
@@ -759,7 +814,7 @@ class Home extends Component {
                     }}>
                         <TouchableOpacity
                             style={{
-                                flex: 1, backgroundColor: "#F5F5F5", margin: 10,
+                                flex: 1, backgroundColor: panelBtnBg, margin: 10,
                                 borderRadius: 5, justifyContent: "center", alignItems: "center"
                             }}
                             onPress={() => {
@@ -776,14 +831,15 @@ class Home extends Component {
                                 style={{
                                     width: 20,
                                     height: 20,
+                                    tintColor: theme !== 'dark'?actions.mainColor:'white'
                                 }}
                             />
-                            <Text style={{ color: "#000", fontSize: 12, marginTop: 5 }}>All
+                            <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>All
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={{
-                                flex: 1, backgroundColor: "#F5F5F5", margin: 10,
+                                flex: 1, backgroundColor: panelBtnBg, margin: 10,
                                 borderRadius: 5, justifyContent: "center", alignItems: "center"
                             }}
                             onPress={() => {
@@ -796,10 +852,10 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor: actions.mainColor
+                                    tintColor: theme !== 'dark'?actions.mainColor:'white'
                                 }}
                             />
-                            <Text style={{ color: "#000", fontSize: 12, marginTop: 5 }}>Delete</Text>
+                            <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>Delete</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -813,6 +869,10 @@ class Home extends Component {
     }
 
     renderPanel() {
+        const {contentStyle, theme} = this.state;
+        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor
+        ,panelBg,panelBtnBg,lineColor} = contentStyle;
+        const themeBg = {backgroundColor};
         if (this.state.showPanel) {
             return (<TouchableOpacity style={{
                 position: "absolute",
@@ -835,7 +895,7 @@ class Home extends Component {
 
                 }}>
                 <Animated.View style={{
-                    backgroundColor: "white",
+                    backgroundColor: panelBg,
                     height: 160,
                     width: width - 20,
                     borderRadius: 10,
@@ -855,13 +915,13 @@ class Home extends Component {
                         fontSize: 24,
                         paddingTop: 12,
                         paddingBottom: 12,
-                        color: "#000",
+                        color: color,
                         marginStart: 20,
                         marginTop: 10
                     }}>{this.state.selectedNote ? (this.state.selectedNote.title.length > 16 ?
                         this.state.selectedNote.title.substring(0, 16) + "....." : this.state.selectedNote.title) : "No Note"}</Text>
                     <View style={{
-                        height: 1, backgroundColor: "#F3F4F4", marginStart: 20,
+                        height: 1, backgroundColor: panelBtnBg, marginStart: 20,
                         marginEnd: 20
                     }}></View>
                     <View style={{
@@ -871,7 +931,7 @@ class Home extends Component {
                     }}>
                         <TouchableOpacity
                             style={{
-                                flex: 1, backgroundColor: "#F5F5F5", margin: 10,
+                                flex: 1, backgroundColor: panelBtnBg, margin: 10,
                                 borderRadius: 5, justifyContent: "center", alignItems: "center"
                             }}
                             onPress={() => {
@@ -886,14 +946,14 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor: actions.mainColor
+                                    tintColor:theme==='dark'?'white':'#231F20'
                                 }}
                             />
-                            <Text style={{ color: "#000", fontSize: 12, marginTop: 5 }}>Rename</Text>
+                            <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>Rename</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={{
-                                flex: 1, backgroundColor: "#F5F5F5", margin: 10,
+                                flex: 1, backgroundColor: panelBtnBg, margin: 10,
                                 borderRadius: 5, justifyContent: "center", alignItems: "center"
                             }}
                             onPress={() => {
@@ -919,15 +979,15 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor: actions.mainColor
+                                    tintColor:theme==='dark'?'white':'#231F20'
 
                                 }}
                             />
-                            <Text style={{ color: "#000", fontSize: 12, marginTop: 5 }}>Share</Text>
+                            <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>Share</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={{
-                                flex: 1, backgroundColor: "#F5F5F5", margin: 10,
+                                flex: 1, backgroundColor: panelBtnBg, margin: 10,
                                 borderRadius: 5, justifyContent: "center", alignItems: "center"
                             }}
                             onPress={() => {
@@ -945,15 +1005,15 @@ class Home extends Component {
                                 style={{
                                     width: 20,
                                     height: 20,
-                                    tintColor: actions.mainColor
+                                    tintColor:theme==='dark'?'white':'#231F20'
 
                                 }}
                             />
-                            <Text style={{ color: "#000", fontSize: 12, marginTop: 5 }}>Choice</Text>
+                            <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>Choice</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={{
-                                flex: 1, backgroundColor: "#F5F5F5", margin: 10,
+                                flex: 1, backgroundColor: panelBtnBg, margin: 10,
                                 borderRadius: 5, justifyContent: "center", alignItems: "center"
                             }}
                             onPress={this.toDelete.bind(this)}>
@@ -962,11 +1022,11 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor: actions.mainColor
+                                    tintColor:theme==='dark'?'white':'#231F20'
 
                                 }}
                             />
-                            <Text style={{ color: "#000", fontSize: 12, marginTop: 5 }}>Delete</Text>
+                            <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>Delete</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -1001,11 +1061,14 @@ class Home extends Component {
     }
 
     render() {
+        const {contentStyle, theme} = this.state;
+        const {backgroundColor, color} = contentStyle;
+        const themeBg = {backgroundColor};
         return (
-            <SafeAreaView style={{ backgroundColor: "#ffffff", flex: 1, }}>
+            <SafeAreaView style={{ backgroundColor: backgroundColor, flex: 1, }}>
                 <StatusBar
-                    backgroundColor="#ffffff"
-                    barStyle="dark-content"
+                    backgroundColor={backgroundColor}
+                    barStyle={theme !== 'dark' ? 'dark-content' : 'light-content'}
                 />
                 <MyAlert
                     content="Are you sure to delete？"
@@ -1131,6 +1194,7 @@ class Home extends Component {
                             style={{
                                 width: 50,
                                 height: 50,
+                                tintColor:theme !=='dark'?'transparent':'#4BBBFA',
                                 transform: [{
                                     rotateZ: this.state.scaleAnimate.interpolate({
                                         inputRange: [0, 0.5, 0.75, 1],

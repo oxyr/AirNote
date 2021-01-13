@@ -113,18 +113,19 @@ class Add extends Component {
 
     }
     static navigationOptions = ({ route, navigation }) => {
+        const navStyle = actionss.getNavStyle();
         const { params = {} } = route;
         return {
             headerTitle: "",
             headerStyle: {
-                backgroundColor: "#ffffff",
+                backgroundColor: navStyle.backgroundColor,
                 elevation: 0,
                 borderBottomWidth: 0,
                 shadowOpacity: 0,
                 elevation: 0,
             },
             headerLeft: (props) => (
-                <HeaderBackButton tintColor={"#000"} onPress={params._toBack} />
+                <HeaderBackButton tintColor={navStyle.color} onPress={params._toBack} />
             ),
             headerRight: (props) => (
                 <View style={{ marginEnd: 10 }}>
@@ -134,12 +135,15 @@ class Add extends Component {
                     >
                         <Image
                             source={require("../assets/icon_more.png")}
-                            style={{ width: 30, height: 30, marginStart: 0 }}
+                            style={{
+                                width: 30, height: 30, marginStart: 0,
+                                tintColor: navStyle.iconTint
+                            }}
                         />
                     </TouchableOpacity>
                 </View>
             ),
-            headerTintColor: "#000000",
+            headerTintColor: navStyle.color,
         };
     };
     /******* Animate *******************************/
@@ -313,6 +317,10 @@ class Add extends Component {
     }
 
     renderNavPanel() {
+        const { contentStyle, theme } = this.state;
+        const { backgroundColor, itemBgColor, color, iconColor, itemDateColor
+            , panelBg, panelBtnBg, lineColor } = contentStyle;
+        const themeBg = { backgroundColor };
         if (this.state.showNavPanel) {
             return (<TouchableOpacity style={{
                 position: "absolute",
@@ -332,7 +340,7 @@ class Add extends Component {
                     })
                 }}>
                 <Animated.View style={{
-                    backgroundColor: "white",
+                    backgroundColor: panelBg,
                     width: "46%",
                     borderRadius: 10,
                     shadowColor: "#000",
@@ -375,13 +383,14 @@ class Add extends Component {
                                 alignItems: "center",
                                 width: 20,
                                 height: 20,
+                                tintColor: theme !== 'dark' ? actions.mainColor : 'white',
                                 marginStart: 20
                             }}></Image>
                         <Text style={{
                             fontSize: 16,
                             paddingTop: 12,
                             paddingBottom: 12,
-                            color: "#000",
+                            color: color,
                             marginStart: 20,
                             marginTop: 0,
                             flex: 1
@@ -389,7 +398,7 @@ class Add extends Component {
 
                     </TouchableOpacity>
                     <View style={{
-                        height: 1, backgroundColor: "#F3F4F4", marginStart: 20,
+                        height: 1, backgroundColor: lineColor, marginStart: 20,
                         marginEnd: 20
                     }}></View>
                     <TouchableOpacity style={{
@@ -412,10 +421,10 @@ class Add extends Component {
                                 var footer = `<div style=\"text-align:center;font-size:12px;margin-top:100px;\">
                                 Published by <span style=\"color:#4BBBFA;
                                 text-decoration: none;font-size:16px\">AirNote</span></div>`;
-                                that.richText.current.setContentHTML(title+this.state.content+footer);
-                                setTimeout(()=>{
+                                that.richText.current.setContentHTML(title + this.state.content + footer);
+                                setTimeout(() => {
                                     that.richText.current.snapFullShot()
-                                },1500)
+                                }, 1500)
                             })
                         }}>
                         <Image
@@ -425,13 +434,14 @@ class Add extends Component {
                                 alignItems: "center",
                                 width: 20,
                                 height: 20,
+                                tintColor: theme !== 'dark' ? actions.mainColor : 'white',
                                 marginStart: 20
                             }}></Image>
                         <Text style={{
                             fontSize: 16,
                             paddingTop: 12,
                             paddingBottom: 12,
-                            color: "#000",
+                            color: color,
                             marginStart: 20,
                             marginTop: 0,
                             flex: 1
@@ -439,7 +449,7 @@ class Add extends Component {
 
                     </TouchableOpacity>
                     <View style={{
-                        height: 1, backgroundColor: "#F3F4F4", marginStart: 20,
+                        height: 1, backgroundColor: lineColor, marginStart: 20,
                         marginEnd: 20
                     }}></View>
                     <TouchableOpacity style={{
@@ -464,13 +474,14 @@ class Add extends Component {
                                 alignItems: "center",
                                 width: 20,
                                 height: 20,
+                                tintColor: theme !== 'dark' ? actions.mainColor : 'white',
                                 marginStart: 20
                             }}></Image>
                         <Text style={{
                             fontSize: 16,
                             paddingTop: 12,
                             paddingBottom: 12,
-                            color: "#000",
+                            color: color,
                             marginStart: 20,
                             marginTop: 0,
                             flex: 1
@@ -478,7 +489,7 @@ class Add extends Component {
 
                     </TouchableOpacity>
                     <View style={{
-                        height: 1, backgroundColor: "#F3F4F4", marginStart: 20,
+                        height: 1, backgroundColor:lineColor, marginStart: 20,
                         marginEnd: 20
                     }}></View>
 
@@ -540,7 +551,7 @@ class Add extends Component {
         // } else {
         // editor.focusContentEditor();
         // }
-        if(this.autoShare) {
+        if (this.autoShare) {
             this.createPDF();
         }
     }
@@ -692,18 +703,27 @@ class Add extends Component {
     createContentStyle(theme) {
         // Can be selected for more situations (cssText or contentCSSText).
         const contentStyle = {
-            backgroundColor: '#fff',
-            color: '#000',
+            backgroundColor: '#161819',
+            color: '#fff',
             placeholderColor: 'gray',
-            padding: 20,
             // cssText: '#editor {background-color: #f3f3f3}', // initial valid
-            contentCSSText: 'font-size: 1.2em;', // initial valid
+            contentCSSText: 'font-size: 16px;',
+            itemBgColor: '#222324', // initial valid
+            itemDateColor: '#A5A6A8',
+            panelBg: "#272829",
+            panelBtnBg: "#373939",
+            lineColor: "#343637",
+
         };
         if (theme === 'light') {
-            contentStyle.backgroundColor = '#fff';
+            contentStyle.backgroundColor = actions.mainBgColor;
             contentStyle.color = '#000';
             contentStyle.placeholderColor = '#a9a9a9';
-            contentStyle.contentCSSText = 'font-size: 1.2em;' // initial valid
+            contentStyle.itemBgColor = '#F6F6F6';
+            contentStyle.itemDateColor = '#A5A6A8';
+            contentStyle.panelBg = '#fff';
+            contentStyle.panelBtnBg = '#F5F5F5';
+            contentStyle.lineColor = '#F3F4F4'
         }
         return contentStyle;
     }
@@ -746,7 +766,7 @@ class Add extends Component {
                     <Image
                         source={item.icon}
                         style={{
-                            tintColor: actionss.mainColor,
+                            tintColor: this.state.contentStyle.color,
                             height: 44,
                             width: 44,
                         }}
@@ -755,7 +775,7 @@ class Add extends Component {
             )
         } else if (item.types == "h1" || item.types == "h3") {
             return (
-                <Text style={[styles.tib, { color: actionss.mainColor }]}>{item.icon}</Text>
+                <Text style={[styles.tib, { color: color }]}>{item.icon}</Text>
 
             )
         }
@@ -764,14 +784,15 @@ class Add extends Component {
 
     render() {
         let that = this;
-        const { contentStyle, theme, emojiVisible, disabled } = that.state;
-        const { backgroundColor, color, placeholderColor } = contentStyle;
+        const { contentStyle, theme, emojiVisible, disabled } = this.state;
+        const { backgroundColor, itemBgColor, color, iconColor, itemDateColor
+            , panelBg, panelBtnBg, lineColor, placeholderColor } = contentStyle;
         const themeBg = { backgroundColor };
         return (
             <SafeAreaView style={[styles.container, themeBg]}>
                 <StatusBar
-                    backgroundColor="#ffffff"
-                    barStyle="dark-content"
+                    backgroundColor={backgroundColor}
+                    barStyle={theme !== 'dark' ? 'dark-content' : 'light-content'}
                 />
                 <InsertLinkModal
                     placeholderColor={placeholderColor}
@@ -822,7 +843,7 @@ class Add extends Component {
                                 height: 55,
                                 paddingLeft: 0,
                                 paddingTop: 0,
-                                color: "#000",
+                                color: color,
                                 alignItems: "center",
                                 height: this.state.inputTitleHeight,
                             }}
@@ -875,7 +896,7 @@ class Add extends Component {
                                 height: 45,
                                 lineHeight: 45,
                                 padding: 0,
-                                color: this.state.title == "" ? "#a9a9a9" : "#000",
+                                color: this.state.title == "" ? "#a9a9a9" : color,
                                 alignItems: "center",
                             }}>{this.state.title.length > 28 ?
                                 this.state.title.substring(0, 16) + "..." : (this.state.title == "" ? "Enter your title...." : this.state.title)}</Text>
@@ -907,7 +928,7 @@ class Add extends Component {
                     {/* </ScrollView> */}
                 </View>
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={{ marginTop: 0 }} keyboardVerticalOffset={100}>
+                    style={{ marginTop: 0 }} keyboardVerticalOffset={89}>
                     {this.state.showSubRichTool ? (<Animated.View style={[themeBg, {
                         height: 55,
                         position: "absolute",
@@ -924,10 +945,11 @@ class Add extends Component {
                             data={this.state.fontAction}
                             alwaysBounceHorizontal={false}
                             style={{
-                                borderBottomColor: "#F3F4F4",
+                                borderBottomColor: lineColor,
                                 borderBottomWidth: 1,
-                                borderTopColor: "#F3F4F4",
+                                borderTopColor: lineColor,
                                 borderTopWidth: 1,
+                                backgroundColor: panelBg
                             }}
                             showsHorizontalScrollIndicator={false}
                             renderItem={({ item, index }) => {
@@ -961,7 +983,7 @@ class Add extends Component {
                     </Animated.View>) : null}
 
                     <RichToolbar
-                        style={[styles.richBar, themeBg]}
+                        style={[styles.richBar, themeBg, { backgroundColor: panelBg }]}
                         editor={this.richText}
                         disabled={disabled}
                         iconTint={color}
