@@ -94,6 +94,7 @@ class Add extends Component {
             panelViewY: new Animated.Value(0),
         };
         this.note_id = route.params?.aid ?? "";
+        this.autoShare = route.params?.share ?? false;
         that.onHome = that.onHome;
         that.save = that.save;
         that.onTheme = that.onTheme;
@@ -539,6 +540,9 @@ class Add extends Component {
         // } else {
         // editor.focusContentEditor();
         // }
+        if(this.autoShare) {
+            this.createPDF();
+        }
     }
 
     /**

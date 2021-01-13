@@ -84,14 +84,14 @@ class Home extends Component {
     toSetting = () => {
         if (this.state.isChoice) {
             for (var i in this.state.checklist) {
-                this.state.checklist[i].check =false;
+                this.state.checklist[i].check = false;
             }
             this.setState({
                 isChoice: false,
                 showPanel: false,
                 showNavPanel: false,
                 checkedCount: 0,
-                checklist:this.state.checklist
+                checklist: this.state.checklist
             })
             this.props.navigation.setParams({
                 isChoice: false
@@ -331,9 +331,9 @@ class Home extends Component {
     documentsGrid({ item, index }) {
         return (
             <TouchableOpacity style={{
-                flexDirection: "column", 
+                flexDirection: "column",
                 backgroundColor: this.state.checklist[index].check ?
-                'rgba(35,31,32,0.2)':"#F6F6F6",
+                    'rgba(35,31,32,0.2)' : "#F6F6F6",
                 alignItems: "center",
                 width: width / 2 - 20,
                 margin: 10,
@@ -345,8 +345,8 @@ class Home extends Component {
                 },
                 shadowOpacity: 0.20,
                 shadowRadius: 1.41,
-                borderWidth:this.state.checklist[index].check?1:0,
-                borderColor:this.state.checklist[index].check?actions.mainColor:'transparent',
+                borderWidth: this.state.checklist[index].check ? 1 : 0,
+                borderColor: this.state.checklist[index].check ? actions.mainColor : 'transparent',
                 // backgroundColor:this.state.isChoice?'rgba(35,31,32,0.3)':'#F6F6F6',
                 elevation: 2,
             }}
@@ -425,11 +425,11 @@ class Home extends Component {
         return (
             <TouchableOpacity style={{
                 flexDirection: "row", backgroundColor: this.state.checklist[index].check ?
-                'rgba(35,31,32,0.2)':"#fff", height: 80
+                    'rgba(35,31,32,0.2)' : "#fff", height: 80
                 , alignItems: "center",
-                borderColor:this.state.checklist[index].check ?actions.mainColor:"transparent",
-                borderBottomWidth:this.state.checklist[index].check?1:0,
-                borderTopWidth:index == 0 && this.state.checklist[index].check?1:0
+                borderColor: this.state.checklist[index].check ? actions.mainColor : "transparent",
+                borderBottomWidth: this.state.checklist[index].check ? 1 : 0,
+                borderTopWidth: index == 0 && this.state.checklist[index].check ? 1 : 0
             }}
                 onPress={
                     this.state.isChoice ? this.toChoice.bind(this, index) : this.toModify.bind(this, item.id)}
@@ -443,8 +443,8 @@ class Home extends Component {
                         style={{
                             width: 33,
                             height: 33,
-                            zIndex:1000,
-                            elevation:1000
+                            zIndex: 1000,
+                            elevation: 1000
                         }}
                     />
                 </View>
@@ -796,7 +796,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor:actions.mainColor
+                                    tintColor: actions.mainColor
                                 }}
                             />
                             <Text style={{ color: "#000", fontSize: 12, marginTop: 5 }}>Delete</Text>
@@ -886,7 +886,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor:actions.mainColor
+                                    tintColor: actions.mainColor
                                 }}
                             />
                             <Text style={{ color: "#000", fontSize: 12, marginTop: 5 }}>Rename</Text>
@@ -895,13 +895,31 @@ class Home extends Component {
                             style={{
                                 flex: 1, backgroundColor: "#F5F5F5", margin: 10,
                                 borderRadius: 5, justifyContent: "center", alignItems: "center"
+                            }}
+                            onPress={() => {
+                                var that = this;
+                                this.setState({
+                                    showPanel: false,
+                                    selectedNote: ""
+                                })
+                                this.props.navigation.navigate("Add", {
+                                    aid: that.state.selectedNote.id,
+                                    share:true,
+                                    refresh: () => {
+                                        that.setState({ documents: [], selectedNote: "" }, () => {
+                                            that.loadData()
+                                        },
+                                        );
+                                    }
+                                })
                             }}>
+
                             <Image
                                 source={require('../assets/icon_share.png')}
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor:actions.mainColor
+                                    tintColor: actions.mainColor
 
                                 }}
                             />
@@ -927,7 +945,7 @@ class Home extends Component {
                                 style={{
                                     width: 20,
                                     height: 20,
-                                    tintColor:actions.mainColor
+                                    tintColor: actions.mainColor
 
                                 }}
                             />
@@ -944,7 +962,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor:actions.mainColor
+                                    tintColor: actions.mainColor
 
                                 }}
                             />
@@ -1047,6 +1065,14 @@ class Home extends Component {
                             return "_" + item.id;
                         }}
                         ListEmptyComponent={this.renderEmpty.bind(this)}
+                        ListFooterComponent={() => {
+                            if (this.state.documents.length >= 6) {
+                                return (<View style={{ width, height: 250 }}></View>)
+                            } else {
+                                return null;
+                            }
+
+                        }}
                         style={{
                             marginTop: 10,
                         }}
@@ -1061,6 +1087,15 @@ class Home extends Component {
                             return "#" + item.id;
                         }}
                         ListEmptyComponent={this.renderEmpty.bind(this)}
+                        ListFooterComponent={() => {
+                            if (this.state.documents.length >= 6) {
+                                return (<View style={{ width, height: 250 }}></View>)
+                            } else {
+                                return null;
+                            }
+                        }
+                        }
+
                         style={{
 
                         }}
