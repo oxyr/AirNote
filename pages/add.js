@@ -497,7 +497,7 @@ class Add extends Component {
                 id: new Date(createdAt).getTime() + "",
                 name: "oc",
                 title: this.state.title ? this.state.title : "No Title",
-                content: this.state.content ? this.state.title : "",
+                content: this.state.content ? this.state.content : "",
                 lastTime: new Date(createdAt),
                 createTime: new Date(createdAt)
             };
@@ -742,7 +742,7 @@ class Add extends Component {
                     <Image
                         source={item.icon}
                         style={{
-                            tintColor: "#000",
+                            tintColor: actionss.mainColor,
                             height: 44,
                             width: 44,
                         }}
@@ -751,7 +751,7 @@ class Add extends Component {
             )
         } else if (item.types == "h1" || item.types == "h3") {
             return (
-                <Text style={[styles.tib, { color: "#000" }]}>{item.icon}</Text>
+                <Text style={[styles.tib, { color: actionss.mainColor }]}>{item.icon}</Text>
 
             )
         }
