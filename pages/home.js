@@ -497,7 +497,7 @@ class Home extends Component {
         return (
             <TouchableOpacity style={{
                 flexDirection: "row", backgroundColor: this.state.checklist[index].check ?
-                    'rgba(35,31,32,0.2)' : itemBgColor, height: 80
+                    'rgba(35,31,32,0.2)' : backgroundColor, height: 80
                 , alignItems: "center",
                 borderColor: this.state.checklist[index].check ? actions.mainColor : "transparent",
                 borderBottomWidth: this.state.checklist[index].check ? 1 : 0,

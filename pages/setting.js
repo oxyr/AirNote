@@ -114,14 +114,14 @@ class Setting extends Component {
             panelBg, panelBtnBg, lineColor } = contentStyle;
         const themeBg = { backgroundColor };
         return (
-            <SafeAreaView style={{ backgroundColor: backgroundColor, flex: 1, }}>
+            <SafeAreaView style={{ backgroundColor: panelBtnBg, flex: 1, }}>
                 <StatusBar
                     backgroundColor={backgroundColor}
                     barStyle={theme !== 'dark' ? 'dark-content' : 'light-content'}
                 />
                 <ScrollView style={{
                     flex: 1,
-                    backgroundColor: backgroundColor
+                    backgroundColor: panelBtnBg
                 }}>
                     <View
                         style={{ justifyContent: "center", flex: 1, alignItems: "center", marginTop: 20 }}
@@ -130,7 +130,15 @@ class Setting extends Component {
                             source={require('../assets/logo.png')}
                             style={{
                                 justifyContent: "center", width: 66, height: 66, margin: 0,
-                                borderRadius: 10
+                                borderRadius: 10,
+                                borderRadius: 10,
+                                shadowColor: "#000",
+                                shadowOffset: {
+                                    width: 1,
+                                    height: 5,
+                                },
+                                shadowOpacity: 0.35,
+                                shadowRadius: 5,
                             }}
                         />
                         <View height={15} />
@@ -244,7 +252,7 @@ class Setting extends Component {
                         <Text style={{
                             color: color, fontSize: 18, textAlign: "left",
                             marginStart: 26,
-                            alignItem: "center", height: 44, ...Platform.select({
+                            alignItems: "center", height: 44, ...Platform.select({
                                 ios: {
                                     lineHeight: 44,
                                 },
