@@ -3,7 +3,7 @@ import {
     Appearance
 } from "react-native";
 import ExtraDimensions from 'react-native-extra-dimensions-android';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // 设备宽度，单位 dp
 export const deviceWidthDp = Dimensions.get("window").width;
 export const deviceHeightDp = Dimensions.get("window").height;
@@ -36,11 +36,11 @@ export function getHeight() {
 }
 
 export function getNavStyle() {
-    const theme =  Appearance.getColorScheme();
+    const theme = Appearance.getColorScheme();
     const contentStyle = {
         backgroundColor: '#161819',
         color: '#fff',
-        iconTint:'#fff'
+        iconTint: '#fff'
     };
     if (theme === 'light') {
         contentStyle.backgroundColor = mainBgColor;
@@ -48,4 +48,21 @@ export function getNavStyle() {
         contentStyle.iconTint = '#161819'
     }
     return contentStyle;
+}
+
+export async function setAsyncItem(key, value, callback) {
+    await AsyncStorage.setItem(key, value, err => {
+        callback && callback(err)
+    });
+}
+export function getItem(key, callback) {
+    return new Promise(
+        function (resolve, reject) {
+            AsyncStorage.getItem(key, (err, value) => {
+                callback && callback(err, value)
+                resolve(value)
+                reject(err)
+            });
+        }
+    )
 }

@@ -37,7 +37,7 @@ class Home extends Component {
 
         console.log(theme)
         this.state = {
-            theme: theme, 
+            theme: theme,
             contentStyle,
             documents: [],
             showPanel: false,
@@ -75,9 +75,28 @@ class Home extends Component {
                         {params.isChoice ? (<Text
                             style={{ color: navStyle.color, fontSize: 20 }}>Done</Text>) : (<Image
                                 source={require("../assets/icon_menu.png")}
-                                style={{ width: 30, height: 30, marginStart: 0,
-                                tintColor:navStyle.iconTint }}
+                                style={{
+                                    width: 26, height: 26, marginStart: 0,
+                                    tintColor: navStyle.iconTint
+                                }}
                             />)}
+
+                    </TouchableOpacity>
+                </View>
+            ),
+            headerLeft: (props) => (
+                <View style={{ marginStart: 20 }}>
+                    <TouchableOpacity
+                        onPress={params._toPro}
+                        style={{ justifyContent: 'center', marginEnd: 10 }}
+                    >
+                        <Image
+                            source={require("../assets/icon_setting.png")}
+                            style={{
+                                width: 26, height: 26, marginStart: 0,
+                                tintColor: navStyle.iconTint
+                            }}
+                        />
 
                     </TouchableOpacity>
                 </View>
@@ -94,11 +113,11 @@ class Home extends Component {
             placeholderColor: 'gray',
             // cssText: '#editor {background-color: #f3f3f3}', // initial valid
             contentCSSText: 'font-size: 16px;',
-            itemBgColor:'#222324', // initial valid
-            itemDateColor:'#A5A6A8',
-            panelBg:"#272829",
-            panelBtnBg:"#373939",
-            lineColor:"#343637",
+            itemBgColor: '#222324', // initial valid
+            itemDateColor: '#A5A6A8',
+            panelBg: "#272829",
+            panelBtnBg: "#373939",
+            lineColor: "#343637",
 
         };
         if (theme === 'light') {
@@ -106,10 +125,10 @@ class Home extends Component {
             contentStyle.color = '#000';
             contentStyle.placeholderColor = '#a9a9a9';
             contentStyle.itemBgColor = '#F6F6F6';
-            contentStyle.itemDateColor= '#A5A6A8';
-            contentStyle.panelBg= '#fff';
-            contentStyle.panelBtnBg= '#F5F5F5';
-            contentStyle.lineColor='#F3F4F4'
+            contentStyle.itemDateColor = '#A5A6A8';
+            contentStyle.panelBg = '#fff';
+            contentStyle.panelBtnBg = '#F5F5F5';
+            contentStyle.lineColor = '#F3F4F4'
         }
         return contentStyle;
     }
@@ -139,6 +158,16 @@ class Home extends Component {
                 checkedCount: 0
             })
         }
+    };
+    toPro = () => {
+        var that = this;
+        this.props.navigation.navigate("Setting", {
+            refresh: () => {
+                that.setState({ documents: [] }, () => {
+                    that.loadData()
+                });
+            }
+        })
     };
     toAdd = () => {
         this.setState({
@@ -320,6 +349,7 @@ class Home extends Component {
     componentDidMount() {
         this.props.navigation.setParams({
             _toSetting: this.toSetting,
+            _toPro:this.toPro,
         });
         this.loadData()
         this._addAnimateC();
@@ -364,9 +394,9 @@ class Home extends Component {
         }, 4500);
     }
     documentsGrid({ item, index }) {
-        const {contentStyle, theme} = this.state;
-        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor} = contentStyle;
-        const themeBg = {backgroundColor};
+        const { contentStyle, theme } = this.state;
+        const { backgroundColor, itemBgColor, color, iconColor, itemDateColor } = contentStyle;
+        const themeBg = { backgroundColor };
         return (
             <TouchableOpacity style={{
                 flexDirection: "column",
@@ -460,10 +490,10 @@ class Home extends Component {
 
     }
     documentsItems({ item, index }) {
-        const {contentStyle, theme} = this.state;
-        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor,
-        lineColor} = contentStyle;
-        const themeBg = {backgroundColor};
+        const { contentStyle, theme } = this.state;
+        const { backgroundColor, itemBgColor, color, iconColor, itemDateColor,
+            lineColor } = contentStyle;
+        const themeBg = { backgroundColor };
         return (
             <TouchableOpacity style={{
                 flexDirection: "row", backgroundColor: this.state.checklist[index].check ?
@@ -545,10 +575,10 @@ class Home extends Component {
     }
 
     renderNavPanel() {
-        const {contentStyle, theme} = this.state;
-        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor
-        ,panelBg,panelBtnBg,lineColor} = contentStyle;
-        const themeBg = {backgroundColor};
+        const { contentStyle, theme } = this.state;
+        const { backgroundColor, itemBgColor, color, iconColor, itemDateColor
+            , panelBg, panelBtnBg, lineColor } = contentStyle;
+        const themeBg = { backgroundColor };
         if (this.state.showNavPanel) {
             return (<TouchableOpacity style={{
                 position: "absolute",
@@ -622,7 +652,7 @@ class Home extends Component {
                                 width: 20,
                                 height: 20,
                                 marginEnd: 20,
-                                tintColor:theme==='dark'?'white':'#231F20'
+                                tintColor: theme === 'dark' ? 'white' : '#231F20'
                             }}></Image>
                     </TouchableOpacity>
                     <View style={{
@@ -649,7 +679,7 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: theme !== 'dark'?"black":'white',
+                                    borderColor: theme !== 'dark' ? "black" : 'white',
                                     borderWidth: this.state.sort == 0 ? 1 : 0,
                                     backgroundColor: this.state.sort == 0 ? "rgba(35,31,32,0.2)" : panelBtnBg
                                 }}
@@ -663,7 +693,7 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: theme !== 'dark'?"black":'white',
+                                    borderColor: theme !== 'dark' ? "black" : 'white',
                                     borderWidth: this.state.sort == 1 ? 1 : 0,
                                     backgroundColor: this.state.sort == 1 ? "rgba(35,31,32,0.2)" : panelBtnBg
                                 }}
@@ -697,7 +727,7 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: theme !== 'dark'?"black":'white',
+                                    borderColor: theme !== 'dark' ? "black" : 'white',
                                     borderWidth: this.state.viewType == 0 ? 1 : 0,
                                     backgroundColor: this.state.viewType == 0 ? "rgba(35,31,32,0.2)" : panelBtnBg,
                                     flexDirection: "row"
@@ -713,7 +743,7 @@ class Home extends Component {
                                         width: 22,
                                         height: 22,
                                         marginEnd: 10,
-                                        tintColor:color,
+                                        tintColor: color,
                                     }}></Image>
                                 <Text style={{ color: color, fontSize: 16 }}>List</Text>
                             </TouchableOpacity>
@@ -722,7 +752,7 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: theme !== 'dark'?"black":'white',
+                                    borderColor: theme !== 'dark' ? "black" : 'white',
                                     flexDirection: "row",
                                     borderWidth: this.state.viewType == 1 ? 1 : 0,
                                     backgroundColor: this.state.viewType == 1 ? "rgba(35,31,32,0.2)" : panelBtnBg,
@@ -739,7 +769,7 @@ class Home extends Component {
                                         width: 22,
                                         height: 22,
                                         marginEnd: 10,
-                                        tintColor:color,
+                                        tintColor: color,
                                     }}></Image>
                                 <Text style={{ color: color, fontSize: 16 }}>Grid</Text>
                             </TouchableOpacity>
@@ -754,10 +784,10 @@ class Home extends Component {
     }
 
     renderEditPanel() {
-        const {contentStyle, theme} = this.state;
-        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor
-        ,panelBg,panelBtnBg,lineColor} = contentStyle;
-        const themeBg = {backgroundColor};
+        const { contentStyle, theme } = this.state;
+        const { backgroundColor, itemBgColor, color, iconColor, itemDateColor
+            , panelBg, panelBtnBg, lineColor } = contentStyle;
+        const themeBg = { backgroundColor };
         if (this.state.isChoice) {
             return (<TouchableOpacity style={{
                 position: "absolute",
@@ -831,7 +861,7 @@ class Home extends Component {
                                 style={{
                                     width: 20,
                                     height: 20,
-                                    tintColor: theme !== 'dark'?actions.mainColor:'white'
+                                    tintColor: theme !== 'dark' ? actions.mainColor : 'white'
                                 }}
                             />
                             <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>All
@@ -852,7 +882,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor: theme !== 'dark'?actions.mainColor:'white'
+                                    tintColor: theme !== 'dark' ? actions.mainColor : 'white'
                                 }}
                             />
                             <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>Delete</Text>
@@ -869,10 +899,10 @@ class Home extends Component {
     }
 
     renderPanel() {
-        const {contentStyle, theme} = this.state;
-        const {backgroundColor, itemBgColor,color,iconColor,itemDateColor
-        ,panelBg,panelBtnBg,lineColor} = contentStyle;
-        const themeBg = {backgroundColor};
+        const { contentStyle, theme } = this.state;
+        const { backgroundColor, itemBgColor, color, iconColor, itemDateColor
+            , panelBg, panelBtnBg, lineColor } = contentStyle;
+        const themeBg = { backgroundColor };
         if (this.state.showPanel) {
             return (<TouchableOpacity style={{
                 position: "absolute",
@@ -946,7 +976,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor:theme==='dark'?'white':'#231F20'
+                                    tintColor: theme === 'dark' ? 'white' : '#231F20'
                                 }}
                             />
                             <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>Rename</Text>
@@ -964,7 +994,7 @@ class Home extends Component {
                                 })
                                 this.props.navigation.navigate("Add", {
                                     aid: that.state.selectedNote.id,
-                                    share:true,
+                                    share: true,
                                     refresh: () => {
                                         that.setState({ documents: [], selectedNote: "" }, () => {
                                             that.loadData()
@@ -979,7 +1009,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor:theme==='dark'?'white':'#231F20'
+                                    tintColor: theme === 'dark' ? 'white' : '#231F20'
 
                                 }}
                             />
@@ -1005,7 +1035,7 @@ class Home extends Component {
                                 style={{
                                     width: 20,
                                     height: 20,
-                                    tintColor:theme==='dark'?'white':'#231F20'
+                                    tintColor: theme === 'dark' ? 'white' : '#231F20'
 
                                 }}
                             />
@@ -1022,7 +1052,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor:theme==='dark'?'white':'#231F20'
+                                    tintColor: theme === 'dark' ? 'white' : '#231F20'
 
                                 }}
                             />
@@ -1061,9 +1091,9 @@ class Home extends Component {
     }
 
     render() {
-        const {contentStyle, theme} = this.state;
-        const {backgroundColor, color} = contentStyle;
-        const themeBg = {backgroundColor};
+        const { contentStyle, theme } = this.state;
+        const { backgroundColor, color } = contentStyle;
+        const themeBg = { backgroundColor };
         return (
             <SafeAreaView style={{ backgroundColor: backgroundColor, flex: 1, }}>
                 <StatusBar
@@ -1194,7 +1224,7 @@ class Home extends Component {
                             style={{
                                 width: 50,
                                 height: 50,
-                                tintColor:theme !=='dark'?'transparent':'#4BBBFA',
+                                tintColor: theme !== 'dark' ? 'transparent' : '#4BBBFA',
                                 transform: [{
                                     rotateZ: this.state.scaleAnimate.interpolate({
                                         inputRange: [0, 0.5, 0.75, 1],
