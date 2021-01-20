@@ -35,8 +35,11 @@ export function getHeight() {
     return height
 }
 
-export function getNavStyle() {
-    const theme = Appearance.getColorScheme();
+export function getNavStyle(themes) {
+    theme = Appearance.getColorScheme();
+    if(themes != 'auto') {
+        theme = themes;
+    }
     const contentStyle = {
         backgroundColor: '#161819',
         color: '#fff',

@@ -36,6 +36,7 @@ class Setting extends Component {
         super(props);
         const theme = props.theme || Appearance.getColorScheme();
         const contentStyle = this.createContentStyle(theme);
+
         console.log(theme)
         this.state = {
             theme: theme,
@@ -46,21 +47,20 @@ class Setting extends Component {
     }
 
     static navigationOptions = ({ route, navigation }) => {
-        const navStyle = actions.getNavStyle();
         const { params = {} } = route;
         return {
             headerTitle: "Setting",
             headerStyle: {
-                backgroundColor: navStyle.backgroundColor,
+                backgroundColor: params.navBackgroundColor,
                 elevation: 0,
                 borderBottomWidth: 0,
                 shadowOpacity: 0,
                 elevation: 0,
             },
             headerLeft: (prop) => (
-                <HeaderBackButton tintColor={navStyle.color} onPress={params._toBack} />
+                <HeaderBackButton tintColor={params.navColor} onPress={params._toBack} />
             ),
-            headerTintColor: navStyle.color,
+            headerTintColor: params.navColor,
         };
 
     };
@@ -81,7 +81,7 @@ class Setting extends Component {
 
         };
         if (theme === 'light') {
-            contentStyle.backgroundColor = actions.mainBgColor;
+            contentStyle.backgroundColor = '#F5F5F5';//actions.mainBgColor;
             contentStyle.color = '#000';
             contentStyle.placeholderColor = '#a9a9a9';
             contentStyle.itemBgColor = '#F6F6F6';
@@ -92,21 +92,58 @@ class Setting extends Component {
         }
         return contentStyle;
     }
-    componentDidMount() {
+    async componentDidMount() {
+
+        var that = this;
+        var Mode = await actions.getItem('Mode');
+        if (Mode == 'dark') {
+            contentStyle = this.createContentStyle('dark');
+            that.setState({
+                contentStyle
+            });
+        } else if (Mode == 'light') {
+            contentStyle = this.createContentStyle('light');
+            that.setState({
+                contentStyle
+            });
+        }
+        navStyle = actions.getNavStyle(Mode);
         this.props.navigation.setParams({
             _toBack: this.toBack,
+            navBackgroundColor: navStyle.backgroundColor,
+            navColor: navStyle.color,
         });
-        var that = this;
-        actions.getItem('Mode', (err, value) => {
-            that.setState({
-                Mode: value
-            });
-        })
+        that.setState({
+            Mode: Mode
+        });
+
 
     }
     toBack = () => {
+        if (this.props.route.params.refresh) {
+            this.props.route.params.refresh();
+        }
         this.props.navigation.goBack();
     };
+    changeTheme = (themes) => {
+        var that = this;
+        if (themes == 'auto') {
+            contentStyle = this.createContentStyle(Appearance.getColorScheme());
+        } else {
+            contentStyle = this.createContentStyle(themes);
+        }
+        navStyle = actions.getNavStyle(themes);
+        this.props.navigation.setParams({
+            navBackgroundColor: navStyle.backgroundColor,
+            navColor: navStyle.color,
+        });
+        this.setState({
+            contentStyle,
+            Mode: themes
+        }, () => {
+            actions.setAsyncItem('Mode', themes);
+        });
+    }
     render() {
         var that = this;
         const { contentStyle, theme } = this.state;
@@ -114,14 +151,14 @@ class Setting extends Component {
             panelBg, panelBtnBg, lineColor } = contentStyle;
         const themeBg = { backgroundColor };
         return (
-            <SafeAreaView style={{ backgroundColor: panelBtnBg, flex: 1, }}>
+            <SafeAreaView style={{ backgroundColor: backgroundColor, flex: 1, }}>
                 <StatusBar
                     backgroundColor={backgroundColor}
                     barStyle={theme !== 'dark' ? 'dark-content' : 'light-content'}
                 />
                 <ScrollView style={{
                     flex: 1,
-                    backgroundColor: panelBtnBg
+                    backgroundColor: backgroundColor
                 }}>
                     <View
                         style={{ justifyContent: "center", flex: 1, alignItems: "center", marginTop: 20 }}
@@ -143,7 +180,7 @@ class Setting extends Component {
                         />
                         <View height={15} />
                     </View>
-                    <Text style={{ marginStart: 10, marginTop: 10, color: itemDateColor, marginBottom: 10 }}>Policy</Text>
+                    <Text style={{ marginStart: 15, marginTop: 10, color: itemDateColor, marginBottom: 10 }}>Policy</Text>
 
                     <TouchableOpacity style={{
                         backgroundColor: panelBg, height: 45
@@ -158,7 +195,8 @@ class Setting extends Component {
                         }}>
                         <Text style={{
                             color: color, fontSize: 18, textAlign: "left",
-                            marginStart: 26,
+                            marginStart: 15,
+                            textAlignVertical: 'center',
                             alignItems: "center", height: 44, ...Platform.select({
                                 ios: {
                                     lineHeight: 44,
@@ -169,7 +207,7 @@ class Setting extends Component {
                         }}>Service Privacy policy</Text>
                         <View style={{
                             height: 1, backgroundColor: lineColor,
-                            marginStart: 26
+                            marginStart: 15
                         }}></View>
                         <Image
                             source={require('../assets/icon_right.png')}
@@ -179,7 +217,7 @@ class Setting extends Component {
                                 top: 14,
                                 width: 18,
                                 height: 18,
-                                tintColor: theme === 'dark' ? 'white' : '#231F20'
+                                tintColor: this.state.Mode === 'dark' ? 'white' : '#231F20'
                             }}></Image>
                     </TouchableOpacity>
                     <Text style={{ marginStart: 10, marginTop: 10, color: itemDateColor, marginBottom: 10 }}>Theme Setting</Text>
@@ -187,10 +225,12 @@ class Setting extends Component {
                     <TouchableOpacity style={{
                         backgroundColor: panelBg, height: 45
                         , textAlign: "left",
-                    }}>
+                    }}
+                        onPress={this.changeTheme.bind(this, 'auto')}>
                         <Text style={{
                             color: color, fontSize: 18, textAlign: "left",
-                            marginStart: 26,
+                            marginStart: 15,
+                            textAlignVertical: 'center',
                             alignItems: "center", height: 44, ...Platform.select({
                                 ios: {
                                     lineHeight: 44,
@@ -201,9 +241,9 @@ class Setting extends Component {
                         }}>Auto</Text>
                         <View style={{
                             height: 1, backgroundColor: lineColor,
-                            marginStart: 26
+                            marginStart: 10
                         }}></View>
-                        {!this.state.Mode ? (<Image
+                        {(!this.state.Mode || this.state.Mode === 'auto') ? (<Image
                             source={require('../assets/icon_selected.png')}
                             style={{
                                 position: "absolute",
@@ -218,10 +258,12 @@ class Setting extends Component {
                     <TouchableOpacity style={{
                         backgroundColor: panelBg, height: 45
                         , textAlign: "left",
-                    }}>
+                    }}
+                        onPress={this.changeTheme.bind(this, 'dark')}>
                         <Text style={{
                             color: color, fontSize: 18, textAlign: "left",
-                            marginStart: 26,
+                            marginStart: 15,
+                            textAlignVertical: 'center',
                             alignItems: "center", height: 44, ...Platform.select({
                                 ios: {
                                     lineHeight: 44,
@@ -232,9 +274,9 @@ class Setting extends Component {
                         }}>Dark Mode</Text>
                         <View style={{
                             height: 1, backgroundColor: lineColor,
-                            marginStart: 26
+                            marginStart: 15
                         }}></View>
-                        {this.state.Mode == "1" ? (<Image
+                        {this.state.Mode == "dark" ? (<Image
                             source={require('../assets/icon_selected.png')}
                             style={{
                                 position: "absolute",
@@ -242,16 +284,18 @@ class Setting extends Component {
                                 top: 14,
                                 width: 18,
                                 height: 18,
-                                tintColor: theme === 'dark' ? 'white' : '#231F20'
+                                tintColor: this.state.Mode === 'dark' ? 'white' : '#231F20'
                             }}></Image>) : null}
                     </TouchableOpacity>
                     <TouchableOpacity style={{
                         backgroundColor: panelBg, height: 45
                         , textAlign: "left",
-                    }}>
+                    }}
+                        onPress={this.changeTheme.bind(this, 'light')}>
                         <Text style={{
                             color: color, fontSize: 18, textAlign: "left",
-                            marginStart: 26,
+                            marginStart: 15,
+                            textAlignVertical: 'center',
                             alignItems: "center", height: 44, ...Platform.select({
                                 ios: {
                                     lineHeight: 44,
@@ -262,9 +306,9 @@ class Setting extends Component {
                         }}>Light Mode</Text>
                         <View style={{
                             height: 1, backgroundColor: lineColor,
-                            marginStart: 26
+                            marginStart: 15
                         }}></View>
-                        {this.state.Mode == "2" ? (<Image
+                        {this.state.Mode == "light" ? (<Image
                             source={require('../assets/icon_selected.png')}
                             style={{
                                 position: "absolute",
@@ -272,7 +316,7 @@ class Setting extends Component {
                                 top: 14,
                                 width: 18,
                                 height: 18,
-                                tintColor: theme === 'dark' ? 'white' : '#231F20'
+                                tintColor: this.state.Mode === 'dark' ? 'white' : '#231F20'
                             }}></Image>) : null}
                     </TouchableOpacity>
                     <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 50 }}>
