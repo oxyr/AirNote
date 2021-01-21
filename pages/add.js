@@ -431,10 +431,10 @@ class Add extends Component {
                                 if (this.state.title != '' || this.state.title != 'No Title') {
                                     title = "<h3 style=\"text-align:center\">" + this.state.title + "</h3>"
                                 }
-                                var footer = `<div style=\"text-align:center;width:100%;font-size:12px;position:absolute;bottom:10px;\">
+                                var footer = `<div style=\"text-align:center;width:100%;font-size:12px;margin-top:100px\">
                                 Published by <span style=\"color:#4BBBFA;
                                 text-decoration: none;font-size:16px\">AirNote</span></div>`;
-                                that.richText.current.setContentHTML(this.state.content + footer);
+                                that.richText.current.setContentHTML(title+this.state.content + footer);
                                 setTimeout(() => {
                                     that.richText.current.snapFullShot()
                                 }, 1500)
