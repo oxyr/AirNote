@@ -105,6 +105,33 @@ class Home extends Component {
         };
     };
 
+    async addAboutItem() {
+        var first = await actions.getItem("first");
+        if(!first || first == "") {
+            var createdAt = new Date().getTime()
+            realm.current((err, context) => {
+                console.log(err, context)
+                var noteInfo = {
+                    id: new Date(createdAt).getTime() + "",
+                    name: "oc",
+                    title: "Welcome to AirNote",
+                    content: `<h4>What is the AirNote</h4><div><ol><li>Simple notes&nbsp;</li><li>Conveniently share pictures and PDF files with one click&nbsp;</li><li><strike>Add todo list and checked it</strike></li><li><font color="#db392c">You can edit &nbsp;a lot of note formats&nbsp;</font></li><li>You can insert pictures and URL links&nbsp;</li><li>Minimalist UI style&nbsp;</li></ol><font color="#ebebeb">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Welcome to AirNote</font><br></div>`,
+                    lastTime: new Date(createdAt),
+                    createTime: new Date(createdAt)
+                };
+                try {
+                    context.write(() => {
+                        context.create("NoteInfoSchema", noteInfo);
+                    })
+                    actions.setAsyncItem("first","1");
+                } catch (e) {
+                    console.error("realm error!", e)
+                } finally {
+                }
+            });
+        }
+    }
+
     createContentStyle(theme) {
         // Can be selected for more situations (cssText or contentCSSText).
         const contentStyle = {
@@ -374,6 +401,7 @@ class Home extends Component {
     }
     async componentDidMount() {
         this.getTheme();
+        this.addAboutItem();
         this.loadData();
         this._addAnimateC();
 
@@ -420,6 +448,14 @@ class Home extends Component {
         const { contentStyle, theme } = this.state;
         const { backgroundColor, itemBgColor, color, iconColor, itemDateColor } = contentStyle;
         const themeBg = { backgroundColor };
+        var pattern = new RegExp("[\u4E00-\u9FA5]+");
+        var limit = 19;
+        var limitCount=14
+        if(pattern.test(item.title)){
+            limit = 8;
+            limitCount = 6;
+        }
+        
         return (
             <TouchableOpacity style={{
                 flexDirection: "column",
@@ -500,7 +536,7 @@ class Home extends Component {
                     <Text style={{
                         paddingLeft: 22, paddingRight: 22,
                         color: color, fontSize: 16, marginTop: 0, height: 30, textAlign: "center"
-                    }}>{item.title && item.title.length > 10 ? item.title.substring(0, 9) + "..." :
+                    }}>{item.title && item.title.length > limit ? item.title.substring(0, limitCount) + "..." :
                         item.title}</Text>
                     <Text style={{
                         color: itemDateColor, fontSize: 14, marginTop: 0, marginBottom: 0, height: 30
@@ -517,6 +553,13 @@ class Home extends Component {
         const { backgroundColor, itemBgColor, color, iconColor, itemDateColor,
             lineColor } = contentStyle;
         const themeBg = { backgroundColor };
+        var pattern = new RegExp("[\u4E00-\u9FA5]+");
+        var limit = 19;
+        var limitCount=19
+        if(pattern.test(item.title)){
+            limit = 10;
+            limitCount = 10;
+        }
         return (
             <TouchableOpacity style={{
                 flexDirection: "row", backgroundColor: this.state.checklist[index].check ?
@@ -545,7 +588,7 @@ class Home extends Component {
                 </View>
 
                 <View style={{ marginStart: 0, flex: 1, position: "relative", elevation: 1000 }}>
-                    <Text style={{ color: color, fontSize: 18, marginTop: 10, height: 30, }}>{item.title && item.title.length > 10 ? item.title.substring(0, 12) + "..." : item.title}</Text>
+                    <Text style={{ color: color, fontSize: 18, marginTop: 10, height: 30, }}>{item.title && item.title.length > limit ? item.title.substring(0, limitCount) + "..." : item.title}</Text>
                     <Text style={{ color: itemDateColor, fontSize: 14, marginTop: 4, marginBottom: 0, height: 30 }}>{moment(item.createTime).format("YYYY-MM-DD HH:mm:ss")}</Text>
                     {this.state.isChoice ? (<View style={{ position: "absolute", top: 26, right: 20, zIndex: 2000, }}><CheckBox
                         disabled={false}
