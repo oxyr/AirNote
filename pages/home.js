@@ -60,7 +60,7 @@ class Home extends Component {
         return {
             headerTitle: "Documents",
             headerStyle: {
-                backgroundColor: navStyle.backgroundColor,
+                backgroundColor: params.navBackgroundColor,
                 elevation: 0,
                 borderBottomWidth: 0,
                 shadowOpacity: 0,
@@ -73,11 +73,11 @@ class Home extends Component {
                         style={{ justifyContent: 'center', marginEnd: 10 }}
                     >
                         {params.isChoice ? (<Text
-                            style={{ color: navStyle.color, fontSize: 20 }}>Done</Text>) : (<Image
+                            style={{ color: params.navColor, fontSize: 20 }}>Done</Text>) : (<Image
                                 source={require("../assets/icon_menu.png")}
                                 style={{
                                     width: 26, height: 26, marginStart: 0,
-                                    tintColor: navStyle.iconTint
+                                    tintColor: params.iconTint
                                 }}
                             />)}
 
@@ -94,14 +94,14 @@ class Home extends Component {
                             source={require("../assets/icon_setting.png")}
                             style={{
                                 width: 26, height: 26, marginStart: 0,
-                                tintColor: navStyle.iconTint
+                                tintColor: params.iconTint
                             }}
                         />
 
                     </TouchableOpacity>
                 </View>
             ),
-            headerTintColor: navStyle.color,
+            headerTintColor: params.navColor,
         };
     };
 
@@ -134,6 +134,29 @@ class Home extends Component {
     }
 
 
+    async getTheme(){
+        var Mode = await actions.getItem('Mode');
+        if (Mode == 'dark') {
+            contentStyle = this.createContentStyle('dark');
+        } else if (Mode == 'light') {
+            contentStyle = this.createContentStyle('light');
+        } else  {
+            contentStyle = this.createContentStyle(Appearance.getColorScheme())
+        }
+        this.setState({
+            contentStyle,
+            Mode:Mode=='auto'?Appearance.getColorScheme():Mode
+        })
+        navStyle = actions.getNavStyle(Mode);
+        this.props.navigation.setParams({
+            _toSetting: this.toSetting,
+            _toPro:this.toPro,
+            navBackgroundColor:navStyle.backgroundColor,
+            navColor : navStyle.color,
+            iconTint: navStyle.iconTint
+        });
+    }
+
 
     toSetting = () => {
         if (this.state.isChoice) {
@@ -164,7 +187,8 @@ class Home extends Component {
         this.props.navigation.navigate("Setting", {
             refresh: () => {
                 that.setState({ documents: [] }, () => {
-                    that.loadData()
+                    this.getTheme();
+                    that.loadData();
                 });
             }
         })
@@ -176,6 +200,7 @@ class Home extends Component {
         })
         var that = this;
         this.props.navigation.navigate("Add", {
+            Mode:this.state.Mode,
             refresh: () => {
                 that.setState({ documents: [] }, () => {
                     that.loadData()
@@ -216,6 +241,7 @@ class Home extends Component {
         })
         this.props.navigation.navigate("Add", {
             aid: id,
+            Mode:this.state.Mode,
             refresh: () => {
                 that.setState({ documents: [] }, () => {
                     that.loadData()
@@ -346,12 +372,9 @@ class Home extends Component {
             }
         })
     }
-    componentDidMount() {
-        this.props.navigation.setParams({
-            _toSetting: this.toSetting,
-            _toPro:this.toPro,
-        });
-        this.loadData()
+    async componentDidMount() {
+        this.getTheme();
+        this.loadData();
         this._addAnimateC();
 
     };
@@ -652,7 +675,7 @@ class Home extends Component {
                                 width: 20,
                                 height: 20,
                                 marginEnd: 20,
-                                tintColor: theme === 'dark' ? 'white' : '#231F20'
+                                tintColor: this.state.Mode === 'dark' ? 'white' : '#231F20'
                             }}></Image>
                     </TouchableOpacity>
                     <View style={{
@@ -679,7 +702,7 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: theme !== 'dark' ? "black" : 'white',
+                                    borderColor: this.state.Mode !== 'dark' ? "black" : 'white',
                                     borderWidth: this.state.sort == 0 ? 1 : 0,
                                     backgroundColor: this.state.sort == 0 ? "rgba(35,31,32,0.2)" : panelBtnBg
                                 }}
@@ -693,7 +716,7 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: theme !== 'dark' ? "black" : 'white',
+                                    borderColor: this.state.Mode !== 'dark' ? "black" : 'white',
                                     borderWidth: this.state.sort == 1 ? 1 : 0,
                                     backgroundColor: this.state.sort == 1 ? "rgba(35,31,32,0.2)" : panelBtnBg
                                 }}
@@ -727,7 +750,7 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: theme !== 'dark' ? "black" : 'white',
+                                    borderColor: this.state.Mode !== 'dark' ? "black" : 'white',
                                     borderWidth: this.state.viewType == 0 ? 1 : 0,
                                     backgroundColor: this.state.viewType == 0 ? "rgba(35,31,32,0.2)" : panelBtnBg,
                                     flexDirection: "row"
@@ -752,7 +775,7 @@ class Home extends Component {
                                     flex: 1, margin: 2,
                                     borderRadius: 4, justifyContent: "center", alignItems: "center",
                                     height: 48,
-                                    borderColor: theme !== 'dark' ? "black" : 'white',
+                                    borderColor: this.state.Mode !== 'dark' ? "black" : 'white',
                                     flexDirection: "row",
                                     borderWidth: this.state.viewType == 1 ? 1 : 0,
                                     backgroundColor: this.state.viewType == 1 ? "rgba(35,31,32,0.2)" : panelBtnBg,
@@ -861,7 +884,7 @@ class Home extends Component {
                                 style={{
                                     width: 20,
                                     height: 20,
-                                    tintColor: theme !== 'dark' ? actions.mainColor : 'white'
+                                    tintColor: this.state.Mode !== 'dark' ? actions.mainColor : 'white'
                                 }}
                             />
                             <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>All
@@ -882,7 +905,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor: theme !== 'dark' ? actions.mainColor : 'white'
+                                    tintColor: this.state.Mode !== 'dark' ? actions.mainColor : 'white'
                                 }}
                             />
                             <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>Delete</Text>
@@ -976,7 +999,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor: theme === 'dark' ? 'white' : '#231F20'
+                                    tintColor: this.state.Mode === 'dark' ? 'white' : '#231F20'
                                 }}
                             />
                             <Text style={{ color: color, fontSize: 12, marginTop: 5 }}>Rename</Text>
@@ -1009,7 +1032,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor: theme === 'dark' ? 'white' : '#231F20'
+                                    tintColor: this.state.Mode === 'dark' ? 'white' : '#231F20'
 
                                 }}
                             />
@@ -1035,7 +1058,7 @@ class Home extends Component {
                                 style={{
                                     width: 20,
                                     height: 20,
-                                    tintColor: theme === 'dark' ? 'white' : '#231F20'
+                                    tintColor: this.state.Mode === 'dark' ? 'white' : '#231F20'
 
                                 }}
                             />
@@ -1052,7 +1075,7 @@ class Home extends Component {
                                 style={{
                                     width: 22,
                                     height: 22,
-                                    tintColor: theme === 'dark' ? 'white' : '#231F20'
+                                    tintColor: this.state.Mode === 'dark' ? 'white' : '#231F20'
 
                                 }}
                             />
@@ -1098,7 +1121,7 @@ class Home extends Component {
             <SafeAreaView style={{ backgroundColor: backgroundColor, flex: 1, }}>
                 <StatusBar
                     backgroundColor={backgroundColor}
-                    barStyle={theme !== 'dark' ? 'dark-content' : 'light-content'}
+                    barStyle={this.state.Mode !== 'dark' ? 'dark-content' : 'light-content'}
                 />
                 <MyAlert
                     content="Are you sure to delete？"
@@ -1199,7 +1222,8 @@ class Home extends Component {
                 <View
                     style={{
                         position: "absolute",
-                        bottom: actions.isIphoneX() ? 16 + 49 + 34 : 16 + 49, right: 20, zIndex: 2000
+                        bottom: actions.isIphoneX() ? 16 + 49 + 34 : 16 + 49, right: 20, zIndex: 2000,
+                        elevation:2000
                     }}
                 >
                     <TouchableOpacity style={{
@@ -1224,7 +1248,7 @@ class Home extends Component {
                             style={{
                                 width: 50,
                                 height: 50,
-                                tintColor: theme !== 'dark' ? 'transparent' : '#4BBBFA',
+                                tintColor: this.state.Mode !== 'dark' ? '#3F4142' : '#4BBBFA',
                                 transform: [{
                                     rotateZ: this.state.scaleAnimate.interpolate({
                                         inputRange: [0, 0.5, 0.75, 1],

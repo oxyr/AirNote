@@ -62,10 +62,15 @@ class Add extends Component {
         const { route } = this.props;
         this.richText = React.createRef();
         this.linkModal = React.createRef();
+        this.Mode = route.params?.Mode ?? "auto";
         const theme = props.theme || Appearance.getColorScheme();
-        const contentStyle = that.createContentStyle(theme);
+        contentStyle = that.createContentStyle(theme);
+        if(this.Mode != 'auto') {
+            contentStyle = that.createContentStyle(this.Mode);
+        }
         that.state = {
             theme: theme, contentStyle, emojiVisible: false, disabled: false,
+            Mode:this.Mode == 'auto'?theme:this.Mode,
             keyboardOffset: 0,
             title: "",
             initFlag: true,
@@ -101,7 +106,7 @@ class Add extends Component {
         that.onPressAddImage = that.onPressAddImage;
         that.onInsertLink = that.onInsertLink;
         that.onLinkDone = that.onLinkDone;
-        that.themeChange = that.themeChange;
+        // that.themeChange = that.themeChange;
         that.handleChange = that.handleChange;
         that.handleHeightChange = that.handleHeightChange;
         that.insertEmoji = that.insertEmoji;
@@ -118,14 +123,14 @@ class Add extends Component {
         return {
             headerTitle: "",
             headerStyle: {
-                backgroundColor: navStyle.backgroundColor,
+                backgroundColor: params.navBackgroundColor,
                 elevation: 0,
                 borderBottomWidth: 0,
                 shadowOpacity: 0,
                 elevation: 0,
             },
             headerLeft: (props) => (
-                <HeaderBackButton tintColor={navStyle.color} onPress={params._toBack} />
+                <HeaderBackButton tintColor={params.navColor} onPress={params._toBack} />
             ),
             headerRight: (props) => (
                 <View style={{ marginEnd: 10 }}>
@@ -137,13 +142,13 @@ class Add extends Component {
                             source={require("../assets/icon_more.png")}
                             style={{
                                 width: 30, height: 30, marginStart: 0,
-                                tintColor: navStyle.iconTint
+                                tintColor: params.iconTint
                             }}
                         />
                     </TouchableOpacity>
                 </View>
             ),
-            headerTintColor: navStyle.color,
+            headerTintColor: params.navColor,
         };
     };
     /******* Animate *******************************/
@@ -168,12 +173,17 @@ class Add extends Component {
         ).start();
     }
 
+
     componentDidMount() {
+        // Appearance.addChangeListener(this.themeChange.bind(this));
+        navStyle = actionss.getNavStyle(this.state.Mode);
         this.props.navigation.setParams({
             _toBack: this.toBack,
             _toSetting: this.toMore,
+            navBackgroundColor: navStyle.backgroundColor,
+            navColor: navStyle.color,
+            iconTint: navStyle.iconTint
         });
-        // Appearance.addChangeListener(this.themeChange.bind(this));
         Keyboard.addListener('keyboardDidShow', this.onKeyBoard);
         var that = this;
         realm.current((err, context) => {
@@ -213,6 +223,7 @@ class Add extends Component {
         this.setState({
             keyboardOffset: event.endCoordinates.height,
         })
+        console.log("event",height,event)
         if (!this.state.isTitleEdit) {
             this.richText?.current?.scrollMore(140);
         }
@@ -236,6 +247,7 @@ class Add extends Component {
     };
 
     async createPDF(image = false) {
+        Keyboard.dismiss();
         var title = ''
         if (this.state.title != '' || this.state.title != 'No Title') {
             title = "<h1 style=\"text-align:center\">" + this.state.title + "</h1>"
@@ -410,6 +422,7 @@ class Add extends Component {
                     }}
                         onPress={() => {
                             var that = this;
+                            Keyboard.dismiss();
                             this.setState({
                                 showNavPanel: false
                             }, () => {
@@ -418,10 +431,10 @@ class Add extends Component {
                                 if (this.state.title != '' || this.state.title != 'No Title') {
                                     title = "<h3 style=\"text-align:center\">" + this.state.title + "</h3>"
                                 }
-                                var footer = `<div style=\"text-align:center;font-size:12px;margin-top:100px;\">
+                                var footer = `<div style=\"text-align:center;width:100%;font-size:12px;margin-top:100px\">
                                 Published by <span style=\"color:#4BBBFA;
                                 text-decoration: none;font-size:16px\">AirNote</span></div>`;
-                                that.richText.current.setContentHTML(title + this.state.content + footer);
+                                that.richText.current.setContentHTML(title+this.state.content + footer);
                                 setTimeout(() => {
                                     that.richText.current.snapFullShot()
                                 }, 1500)
@@ -489,7 +502,7 @@ class Add extends Component {
 
                     </TouchableOpacity>
                     <View style={{
-                        height: 1, backgroundColor:lineColor, marginStart: 20,
+                        height: 1, backgroundColor: lineColor, marginStart: 20,
                         marginEnd: 20
                     }}></View>
 
@@ -706,8 +719,8 @@ class Add extends Component {
             backgroundColor: '#161819',
             color: '#fff',
             placeholderColor: 'gray',
-            // cssText: '#editor {background-color: #f3f3f3}', // initial valid
-            contentCSSText: 'font-size: 16px;',
+            cssText: '#editor {background-color: #161819}', // initial valid
+            contentCSSText: 'font-size: 18px;background-color:#161819',
             itemBgColor: '#222324', // initial valid
             itemDateColor: '#A5A6A8',
             panelBg: "#272829",
@@ -716,7 +729,7 @@ class Add extends Component {
 
         };
         if (theme === 'light') {
-            contentStyle.backgroundColor = actions.mainBgColor;
+            contentStyle.backgroundColor = '#fff';
             contentStyle.color = '#000';
             contentStyle.placeholderColor = '#a9a9a9';
             contentStyle.itemBgColor = '#F6F6F6';
@@ -724,6 +737,8 @@ class Add extends Component {
             contentStyle.panelBg = '#fff';
             contentStyle.panelBtnBg = '#F5F5F5';
             contentStyle.lineColor = '#F3F4F4'
+            contentStyle.cssText = '#editor {background-color: #fff}'
+            contentStyle.contentCSSText = 'font-size: 18px;background-color:#fff'
         }
         return contentStyle;
     }
@@ -789,7 +804,7 @@ class Add extends Component {
             , panelBg, panelBtnBg, lineColor, placeholderColor } = contentStyle;
         const themeBg = { backgroundColor };
         return (
-            <SafeAreaView style={[styles.container, themeBg]}>
+            <SafeAreaView style={[styles.container,themeBg]}>
                 <StatusBar
                     backgroundColor={backgroundColor}
                     barStyle={theme !== 'dark' ? 'dark-content' : 'light-content'}
@@ -826,11 +841,11 @@ class Add extends Component {
                         });
 
                     }}>*/}
-                    <View style={{ justifyContent: "center", alignItems: "center", }}>
+                    <View style={{ justifyContent: "center", alignItems: "center",}}>
                         {this.state.isTitleEdit ? (<Input
                             containerStyle={{
                                 width: "100%",
-                                paddingLeft: 20,
+                                paddingLeft: 15,
                                 flexWrap: 'wrap',
                                 marginTop: Platform.select({ android: 0, ios: 8 }),
                                 ...Platform.select({
@@ -878,7 +893,7 @@ class Add extends Component {
                         />) : (<TouchableOpacity
                             style={{
                                 width: "100%",
-                                paddingLeft: 20,
+                                paddingLeft: 15,
                                 flexWrap: 'wrap',
                                 marginTop: Platform.select({ android: 0, ios: 0 }),
                                 ...Platform.select({
@@ -908,9 +923,9 @@ class Add extends Component {
                         onKeyPress={() => { alert(1) }}
                         disabled={disabled}
                         editorStyle={contentStyle} // default light style
-                        containerStyle={themeBg}
+                        containerStyle={[themeBg],{padding:0}}
                         ref={this.richText}
-                        style={[styles.rich, themeBg, {}]}
+                        style={[styles.rich, themeBg,]}
                         placeholder={'Please input your note'}
                         initialContentHTML={this.state.content}
                         editorInitializedCallback={that.editorInitializedCallback.bind(this)}
@@ -1077,7 +1092,6 @@ export default Add;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5FCFF',
     },
     nav: {
         flexDirection: 'row',
@@ -1086,7 +1100,8 @@ const styles = StyleSheet.create({
     },
     rich: {
         minHeight: 300,
-        paddingLeft: 10,
+        paddingStart: 5,
+        paddingEnd:5,
         flex: 1,
     },
     richBar: {
