@@ -1,0 +1,328 @@
+diff --git a/node_modules/react-native-webview/WKWebView+CTMViewCapture_h.h b/node_modules/react-native-webview/WKWebView+CTMViewCapture_h.h
+new file mode 100644
+index 0000000..7317158
+--- /dev/null
++++ b/node_modules/react-native-webview/WKWebView+CTMViewCapture_h.h
+@@ -0,0 +1,25 @@
++//
++//  WKWebView+CTMViewCapture_h.h
++//  CocoaAsyncSocket
++//
++//  Created by shang on 2020/12/31.
++//
++
++#import <WebKit/WebKit.h>
++
++NS_ASSUME_NONNULL_BEGIN
++
++@interface WKWebView (CTMViewCapture_h)
++-(void)CTMContentCaptureCompletionHandler:(void(^)(UIImage*capturedImage))completionHandler;
++
++-(void)CTMContentCaptureWithoutOffsetCompletionHandler:(void(^)(UIImage *capturedImage))completionHandler;
++
++- (void)ZFJContentCaptureCompletionHandler:(void(^)(UIImage *capturedImage))completionHandler;
++
++- (void)ZFJContentCaptureWithoutOffsetCompletionHandler:(void(^)(UIImage *capturedImage))completionHandler;
++
++- (void)CTMContentPageDrawTargetView:(UIView *)targetView index:(int)index maxIndex:(int)maxIndex drawCallback:(void(^)())drawCallback;
++
++@end
++
++NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native-webview/WKWebView+CTMViewCapture_h.m b/node_modules/react-native-webview/WKWebView+CTMViewCapture_h.m
+new file mode 100644
+index 0000000..a80acd7
+--- /dev/null
++++ b/node_modules/react-native-webview/WKWebView+CTMViewCapture_h.m
+@@ -0,0 +1,152 @@
++//
++//  WKWebView+CTMViewCapture_h.m
++//  CocoaAsyncSocket
++//
++//  Created by shang on 2020/12/31.
++//
++
++#import "WKWebView+CTMViewCapture_h.h"
++@implementation WKWebView (CTMViewCapture_h)
++-(void)CTMContentCaptureCompletionHandler:(void(^)(UIImage
++                                                   *capturedImage))completionHandler{
++    
++    CGPoint offset =self.scrollView.contentOffset;
++    UIView *snapShotView = [self       snapshotViewAfterScreenUpdates:YES];
++    snapShotView.frame =CGRectMake(self.frame.origin.x, self.frame.origin.y,snapShotView.frame.size.width, snapShotView.frame.size.height);
++    
++    [self.superview addSubview:snapShotView];
++    if(self.frame.size.height < self.scrollView.contentSize.height){
++        self.scrollView.contentOffset =CGPointMake(0, self.scrollView.contentSize.height - self.frame.size.height);
++    }
++    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)),
++                   dispatch_get_main_queue(), ^{ self.scrollView.contentOffset = CGPointZero;
++        [self CTMContentCaptureWithoutOffsetCompletionHandler:^(UIImage *capturedImage){
++            self.scrollView.contentOffset = offset;
++            [snapShotView removeFromSuperview];
++            completionHandler(capturedImage);}];
++    });
++    
++}
++-(void)CTMContentCaptureWithoutOffsetCompletionHandler:(void(^)(UIImage *capturedImage))completionHandler{
++    UIView *containerView = [[UIView alloc]initWithFrame:self.bounds];
++    
++    CGRect bakFrame = self.frame;
++    UIView *bakSuperView = self.superview;
++    NSInteger bakIndex = [self.superview.subviews indexOfObject:self];
++    
++    [self removeFromSuperview];
++    [containerView addSubview:self];
++    
++    CGSize totalSize = self.scrollView.contentSize;
++    
++    float page = floorf(totalSize.height/containerView.bounds.size.height);
++    
++    self.frame = CGRectMake(0, 0, containerView.bounds.size.width, self.scrollView.contentSize.height);
++    UIGraphicsBeginImageContextWithOptions(totalSize, false, [UIScreen mainScreen].scale);
++    [self CTMContentPageDrawTargetView:containerView index:0 maxIndex:(int)page drawCallback:^{
++        UIImage *capturedImage = UIGraphicsGetImageFromCurrentImageContext();
++        UIGraphicsEndImageContext();
++        
++        [self removeFromSuperview];
++        [bakSuperView insertSubview:self atIndex:bakIndex];
++        
++        self.frame = bakFrame;
++        
++        [containerView removeFromSuperview];
++        
++        completionHandler(capturedImage);
++    }];
++    
++}
++
++- (void)CTMContentPageDrawTargetView:(UIView *)targetView index:(int)index maxIndex:(int)maxIndex drawCallback:(void(^)())drawCallback{
++    CGRect splitFrame = CGRectMake(0, (float)index * targetView.frame.size.height, targetView.bounds.size.width, targetView.frame.size.height);
++    
++    CGRect myFrame = self.frame;
++    myFrame.origin.y = - ((float)index * targetView.frame.size.height);
++    self.frame = myFrame;
++    
++    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
++        [targetView drawViewHierarchyInRect:splitFrame afterScreenUpdates:YES];
++        
++        if(index<maxIndex){
++            [self CTMContentPageDrawTargetView:targetView index:index + 1 maxIndex:maxIndex drawCallback:drawCallback];
++        }else{
++            drawCallback();
++        }
++    });
++}
++
++- (void)ZFJContentCaptureCompletionHandler:(void(^)(UIImage *capturedImage))completionHandler{
++    CGPoint offset = self.scrollView.contentOffset;
++    
++    UIView *snapShotView = [self snapshotViewAfterScreenUpdates:YES];
++    snapShotView.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, snapShotView.frame.size.width, snapShotView.frame.size.height);
++    [self.superview addSubview:snapShotView];
++    
++    if(self.frame.size.height < self.scrollView.contentSize.height){
++        self.scrollView.contentOffset = CGPointMake(0, self.scrollView.contentSize.height - self.frame.size.height);
++    }
++    
++    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
++        self.scrollView.contentOffset = CGPointZero;
++        
++        [self ZFJContentCaptureWithoutOffsetCompletionHandler:^(UIImage *capturedImage) {
++            self.scrollView.contentOffset = offset;
++            
++            [snapShotView removeFromSuperview];
++            
++            completionHandler(capturedImage);
++        }];
++    });
++    
++}
++- (void)ZFJContentCaptureWithoutOffsetCompletionHandler:(void(^)(UIImage *capturedImage))completionHandler{
++    UIView *containerView = [[UIView alloc]initWithFrame:self.bounds];
++    
++    CGRect bakFrame = self.frame;
++    UIView *bakSuperView = self.superview;
++    NSInteger bakIndex = [self.superview.subviews indexOfObject:self];
++    
++    [self removeFromSuperview];
++    [containerView addSubview:self];
++    
++    CGSize totalSize = self.scrollView.contentSize;
++    
++    float page = floorf(totalSize.height/containerView.bounds.size.height);
++    
++    self.frame = CGRectMake(0, 0, containerView.bounds.size.width, self.scrollView.contentSize.height);
++    UIGraphicsBeginImageContextWithOptions(totalSize, false, [UIScreen mainScreen].scale);
++    [self ZFJContentPageDrawTargetView:containerView index:0 maxIndex:(int)page drawCallback:^{
++        UIImage *capturedImage = UIGraphicsGetImageFromCurrentImageContext();
++        UIGraphicsEndImageContext();
++        
++        [self removeFromSuperview];
++        [bakSuperView insertSubview:self atIndex:bakIndex];
++        
++        self.frame = bakFrame;
++        
++        [containerView removeFromSuperview];
++        
++        completionHandler(capturedImage);
++    }];
++    
++}
++- (void)ZFJContentPageDrawTargetView:(UIView *)targetView index:(int)index maxIndex:(int)maxIndex drawCallback:(void(^)())drawCallback{
++    CGRect splitFrame = CGRectMake(0, (float)index * targetView.frame.size.height, targetView.bounds.size.width, targetView.frame.size.height);
++    
++    CGRect myFrame = self.frame;
++    myFrame.origin.y = - ((float)index * targetView.frame.size.height);
++    self.frame = myFrame;
++    
++    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
++        [targetView drawViewHierarchyInRect:splitFrame afterScreenUpdates:YES];
++        
++        if(index<maxIndex){
++            [self ZFJContentPageDrawTargetView:targetView index:index + 1 maxIndex:maxIndex drawCallback:drawCallback];
++        }else{
++            drawCallback();
++        }
++    });
++}
++@end
+diff --git a/node_modules/react-native-webview/WKWebView+FullSnapShot.h b/node_modules/react-native-webview/WKWebView+FullSnapShot.h
+new file mode 100644
+index 0000000..473656a
+--- /dev/null
++++ b/node_modules/react-native-webview/WKWebView+FullSnapShot.h
+@@ -0,0 +1,16 @@
++//
++//  WKWebView+FullSnapShot.h
++//  react-native-webview
++//
++//  Created by shang on 2020/12/31.
++//
++
++#import <WebKit/WebKit.h>
++
++NS_ASSUME_NONNULL_BEGIN
++
++@interface WKWebView (FullSnapShot)
++-(void)asyncTakeSnapshotOfFullContent:(void(^)(UIImage*capturedImage))completionHandler;
++@end
++
++NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native-webview/WKWebView+FullSnapShot.m b/node_modules/react-native-webview/WKWebView+FullSnapShot.m
+new file mode 100644
+index 0000000..aca9f4d
+--- /dev/null
++++ b/node_modules/react-native-webview/WKWebView+FullSnapShot.m
+@@ -0,0 +1,45 @@
++//
++//  WKWebView+FullSnapShot.m
++//  react-native-webview
++//
++//  Created by shang on 2020/12/31.
++//
++
++#import "WKWebView+FullSnapShot.h"
++
++@implementation WKWebView (FullSnapShot)
++-(void) asyncTakeSnapshotOfFullContent:(void (^)(UIImage * _Nonnull))completionHandler
++{
++    CGPoint originalOffset = self.scrollView.contentOffset;
++    float pageNum = 1;
++    if(self.scrollView.contentSize.height > self.scrollView.bounds.size.height)
++    {
++        pageNum = (floorf(self.scrollView.contentSize.height / self.scrollView.bounds.size.height));
++    }
++    UIGraphicsBeginImageContextWithOptions(self.scrollView.contentSize,true,0);
++    UIGraphicsGetCurrentContext();
++    [[UIColor whiteColor] setFill];
++    [[UIColor whiteColor] setStroke];
++    [self loadPageContent:0 maxIndex:pageNum drawCallback:^{
++        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
++        UIGraphicsEndImageContext();
++        self.scrollView.contentOffset = originalOffset;
++        completionHandler(image);
++    }];
++    
++}
++-(void) loadPageContent:(int)index maxIndex:(int)maxIndex drawCallback:(void(^)(void))drawCallback
++{
++    [self.scrollView setContentOffset:CGPointMake(0, (index*self.frame.size.height)) animated:false];
++    CGRect pageFrame = CGRectMake(0, (CGFloat)(index)*self.frame.size.height, self.scrollView.bounds.size.width, self.scrollView.bounds.size.height);
++    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
++        [self.scrollView drawViewHierarchyInRect:pageFrame afterScreenUpdates:YES];
++        
++        if(index<maxIndex){
++            [self loadPageContent:index + 1 maxIndex:maxIndex drawCallback:drawCallback];
++        }else{
++            drawCallback();
++        }
++    });
++}
++@end
+diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
+index 712a0e3..0c830b6 100644
+--- a/node_modules/react-native-webview/apple/RNCWebView.m
++++ b/node_modules/react-native-webview/apple/RNCWebView.m
+@@ -16,7 +16,7 @@
+ #endif // !TARGET_OS_OSX
+ 
+ #import "objc/runtime.h"
+-
++#import "WKWebView+FullSnapShot.h"
+ static NSTimer *keyboardTimer;
+ static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
+ static NSString *const MessageHandlerName = @"ReactNativeWebView";
+@@ -1141,7 +1141,51 @@ - (void)goForward
+ 
+ - (void)goBack
+ {
+-  [_webView goBack];
++//  [_webView goBack];
++    [self snapFull];
++}
++
++-(void) snapFull
++{
++   [_webView asyncTakeSnapshotOfFullContent:^(UIImage * _Nonnull capturedImage) {
++        NSLog(@"image %@",capturedImage);
++        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
++        NSString *documentsPath = [paths objectAtIndex:0];
++        NSString *filePath = [NSString stringWithFormat:@"%@/%@.png", documentsPath, @"share"];
++        [UIImagePNGRepresentation(capturedImage) writeToFile:filePath atomically:YES];
++        NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
++
++                              filePath, @"filePath",@"SNAP_FULL",@"type",@"",@"data", nil];
++        NSMutableDictionary<NSString *, id> *event = [self baseEvent];
++        [event addEntriesFromDictionary: @{@"data": [self convertToJsonData:data]}];
++        self->_onMessage(event);
++    }];
++ }
++
++- (NSString *)convertToJsonData:(NSDictionary *)dict
++{
++    NSError *error;
++    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:&error];
++    NSString *jsonString;
++    if (!jsonData) {
++        NSLog(@"%@",error);
++    } else {
++        jsonString = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
++    }
++
++    NSMutableString *mutStr = [NSMutableString stringWithString:jsonString];
++
++    NSRange range = {0,jsonString.length};
++
++    //去掉字符串中的空格
++    [mutStr replaceOccurrencesOfString:@" " withString:@"" options:NSLiteralSearch range:range];
++
++    NSRange range2 = {0,mutStr.length};
++
++    //去掉字符串中的换行符
++    [mutStr replaceOccurrencesOfString:@"\n" withString:@"" options:NSLiteralSearch range:range2];
++
++    return mutStr;
+ }
+ 
+ - (void)reload

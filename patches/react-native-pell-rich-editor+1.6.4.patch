@@ -1,18 +1,25 @@
 diff --git a/node_modules/react-native-pell-rich-editor/index.d.ts b/node_modules/react-native-pell-rich-editor/index.d.ts
-index e9fe454..29e0042 100644
+index e0e0e62..85ef108 100644
 --- a/node_modules/react-native-pell-rich-editor/index.d.ts
 +++ b/node_modules/react-native-pell-rich-editor/index.d.ts
-@@ -163,6 +163,8 @@ declare module 'react-native-pell-rich-editor' {
+@@ -103,6 +103,7 @@ export interface RichEditorProps extends WebViewProps {
  
-         insertHTML: (html: string) => void;
+     onMessage?: (message: {type: string; id: string; data?: any}) => void;
  
-+        snapFullShot: ()=>void;
-+
-         /**
-          * $ = document.querySelector
-          * this.richText.current?.commandDOM(`$('#title').style.color='${color}'`);
++    snapFullShot: ()=>void;
+     /**
+      * When first gaining focus, the cursor moves to the end of the text
+      * Default is true
+@@ -171,6 +172,7 @@ export class RichEditor extends React.Component<RichEditorProps> {
+     insertText: (text: string) => void;
+ 
+     insertHTML: (html: string) => void;
++    scrollMore: (number:offset) => void;
+ 
+     /**
+      * $ = document.querySelector
 diff --git a/node_modules/react-native-pell-rich-editor/src/RichEditor.js b/node_modules/react-native-pell-rich-editor/src/RichEditor.js
-index 90cbc80..df8735e 100755
+index 806668b..5549ea7 100755
 --- a/node_modules/react-native-pell-rich-editor/src/RichEditor.js
 +++ b/node_modules/react-native-pell-rich-editor/src/RichEditor.js
 @@ -1,8 +1,8 @@
@@ -47,7 +54,15 @@ index 90cbc80..df8735e 100755
              html,
              pasteAsPlainText,
              onPaste,
-@@ -185,24 +185,31 @@ export default class RichTextEditor extends Component {
+@@ -135,6 +135,7 @@ export default class RichTextEditor extends Component {
+             const props = this.props;
+             const message = JSON.parse(event.nativeEvent.data);
+             const data = message.data;
++            console.log(data)
+             switch (message.type) {
+                 case messages.CONTENT_HTML_RESPONSE:
+                     if (this.contentResolve) {
+@@ -187,6 +188,9 @@ export default class RichTextEditor extends Component {
                  case messages.OFFSET_HEIGHT:
                      this.setWebHeight(data);
                      break;
@@ -57,17 +72,11 @@ index 90cbc80..df8735e 100755
                  default:
                      props.onMessage && props.onMessage(message);
                      break;
-             }
-         } catch (e) {
--            //alert('NON JSON MESSAGE');
-+            console.log(event.nativeEvent,e)
-         }
-     }
+@@ -198,12 +202,15 @@ export default class RichTextEditor extends Component {
  
      setWebHeight = (height) => {
--        // console.log(height);
+         // console.log(height);
 -        const {onHeightChange, useContainer} = this.props;
-+        console.log(height);
 +        const { onHeightChange, useContainer } = this.props;
          if (height !== this.state.height) {
 -            useContainer && this.setState({height});
@@ -75,18 +84,16 @@ index 90cbc80..df8735e 100755
              onHeightChange && onHeightChange(height);
          }
      };
- 
 +    snapFullShot() {
 +        this.webviewBridge.goBack();
 +    }
-+
+ 
      /**
       * @param {String} type
-      * @param {String} action
-@@ -211,14 +218,14 @@ export default class RichTextEditor extends Component {
+@@ -213,14 +220,14 @@ export default class RichTextEditor extends Component {
       * @private
       */
-     _sendAction(type, action, data, options) {
+     sendAction(type, action, data, options) {
 -        let jsonString = JSON.stringify({type, name: action, data, options});
 +        let jsonString = JSON.stringify({ type, name: action, data, options });
          if (this.webviewBridge) {
@@ -100,14 +107,8 @@ index 90cbc80..df8735e 100755
          if (prevProps.editorStyle !== editorStyle) {
              editorStyle && this.setContentStyle(editorStyle);
          }
-@@ -231,21 +238,28 @@ export default class RichTextEditor extends Component {
-         this.webviewBridge = ref;
-     }
+@@ -235,15 +242,15 @@ export default class RichTextEditor extends Component {
  
-+    setVRef(ref) {
-+        this.webviewBridge = ref;
-+    }
-+
      renderWebView() {
          let that = this;
 -        const {html, editorStyle, useContainer, ...rest} = that.props;
@@ -125,14 +126,7 @@ index 90cbc80..df8735e 100755
                      hideKeyboardAccessoryView={true}
                      keyboardDisplayRequiresUserAction={false}
                      {...rest}
-                     ref={that.setRef}
-+                    onScroll={(event) => {
-+                        console.log(event.nativeEvent.contentOffset.y);
-+                    }}
-                     onMessage={that.onMessage}
-                     originWhitelist={['*']}
-                     dataDetectorTypes={'none'}
-@@ -262,17 +276,17 @@ export default class RichTextEditor extends Component {
+@@ -264,17 +271,17 @@ export default class RichTextEditor extends Component {
      }
  
      render() {
@@ -155,40 +149,35 @@ index 90cbc80..df8735e 100755
      }
  
      //-------------------------------------------------------------------------------
-@@ -351,14 +365,30 @@ export default class RichTextEditor extends Component {
-     insertHTML(html) {
-         this._sendAction(actions.insertHTML, 'result', html);
-     }
--
-+    s
+@@ -357,10 +364,26 @@ export default class RichTextEditor extends Component {
      insertLink(title, url) {
          if (url) {
              this.showAndroidKeyboard();
--            this._sendAction(actions.insertLink, 'result', {title, url});
-+            this._sendAction(actions.insertLink, 'result', { title, url });
+-            this.sendAction(actions.insertLink, 'result', {title, url});
++            this.sendAction(actions.insertLink, 'result', { title, url });
          }
      }
  
 +    setFontColor(color) {
-+        this._sendAction(actions.setColor, 'result', color);
++        this.sendAction(actions.setColor, 'result', color);
 +    }
 +
 +    setFontBold() {
-+        this._sendAction(actions.setBold, 'result');
++        this.sendAction(actions.setBold, 'result');
 +    }
 +
 +    setItalic() {
-+        this._sendAction(actions.setItalic, 'result');
++        this.sendAction(actions.setItalic, 'result');
 +    }
 +
 +    scrollMore(offset) {
-+        this._sendAction(actions.scrollMore, 'result', offset);
++        this.sendAction(actions.scrollMore, 'result', offset);
 +    }
 +
      commandDOM(command) {
          if (command) {
-             this._sendAction(actions.content, 'commandDOM', command);
-@@ -375,7 +405,7 @@ export default class RichTextEditor extends Component {
+             this.sendAction(actions.content, 'commandDOM', command);
+@@ -383,7 +406,7 @@ export default class RichTextEditor extends Component {
  
      init() {
          let that = this;
@@ -197,21 +186,20 @@ index 90cbc80..df8735e 100755
          initialContentHTML && that.setContentHTML(initialContentHTML);
          placeholder && that.setPlaceholder(placeholder);
          that.setDisable(disabled);
-@@ -385,7 +415,8 @@ export default class RichTextEditor extends Component {
+@@ -393,7 +416,7 @@ export default class RichTextEditor extends Component {
          initialFocus && !disabled && that.focusContentEditor();
          // no visible ?
-         that._sendAction(actions.init);
+         that.sendAction(actions.init);
 -        that.setState({isInit: true});
 +        that.setState({ isInit: true });
-+        
      }
  
      /**
 diff --git a/node_modules/react-native-pell-rich-editor/src/RichToolbar.js b/node_modules/react-native-pell-rich-editor/src/RichToolbar.js
-index c170cca..b3194c5 100755
+index 730e012..fbb80af 100755
 --- a/node_modules/react-native-pell-rich-editor/src/RichToolbar.js
 +++ b/node_modules/react-native-pell-rich-editor/src/RichToolbar.js
-@@ -1,11 +1,11 @@
+@@ -1,18 +1,23 @@
 -import React, {Component} from 'react';
 -import {FlatList, Image, StyleSheet, TouchableOpacity, View} from 'react-native';
 -import {actions} from './const';
@@ -220,26 +208,40 @@ index c170cca..b3194c5 100755
 +import { actions } from './const';
  
  export const defaultActions = [
-+    // actions.setBold,
-+    // actions.setItalic,
-     actions.insertImage,
+     actions.keyboard,
+-    actions.insertImage,
 -    actions.setBold,
 -    actions.setItalic,
++    // actions.insertImage,
++    // actions.setBold,
++    // actions.setItalic,
+     actions.setUnderline,
+-    actions.removeFormat,
++    // actions.removeFormat,
      actions.insertBulletsList,
-     actions.insertOrderedList,
+     actions.indent,
+     actions.outdent,
      actions.insertLink,
-@@ -14,8 +14,8 @@ export const defaultActions = [
++    actions.insertOrderedList,
++    actions.undo,
++    actions.alignLeft,
++    actions.alignCenter,
++    actions.alignRight,
+ ];
+ 
  function getDefaultIcon() {
-     const texts = {};
-     texts[actions.insertImage] = require('../img/icon_format_media.png');
--    texts[actions.setBold] = require('../img/icon_format_bold.png');
--    texts[actions.setItalic] = require('../img/icon_format_italic.png');
-+    // texts[actions.setBold] = require('../img/icon_format_bold.png');
-+    // texts[actions.setItalic] = require('../img/icon_format_italic.png');
-     texts[actions.insertBulletsList] = require('../img/icon_format_ul.png');
-     texts[actions.insertOrderedList] = require('../img/icon_format_ol.png');
-     texts[actions.insertLink] = require('../img/icon_format_link.png');
-@@ -65,37 +65,37 @@ export default class RichToolbar extends Component {
+@@ -20,8 +25,8 @@ function getDefaultIcon() {
+     // new icon styles of experiment
+     texts[actions.insertImage] = require('../img/image.png');
+     texts[actions.keyboard] = require('../img/keyboard.png');
+-    texts[actions.setBold] = require('../img/bold.png');
+-    texts[actions.setItalic] = require('../img/italic.png');
++    // texts[actions.setBold] = require('../img/bold.png');
++    // texts[actions.setItalic] = require('../img/italic.png');
+     texts[actions.insertBulletsList] = require('../img/ul.png');
+     texts[actions.insertOrderedList] = require('../img/ol.png');
+     texts[actions.insertLink] = require('../img/link.png');
+@@ -92,12 +97,12 @@ export default class RichToolbar extends Component {
      }
  
      static getDerivedStateFromProps(nextProps, prevState) {
@@ -255,29 +257,22 @@ index c170cca..b3194c5 100755
              };
          }
          return null;
+@@ -108,7 +113,7 @@ export default class RichToolbar extends Component {
      }
  
-     componentDidMount() {
+     _mount = () => {
 -        const {editor: {current: editor} = {current: this.props?.getEditor()}} = this.props;
 +        const { editor: { current: editor } = { current: this.props?.getEditor() } } = this.props;
          if (!editor) {
              throw new Error('Toolbar has no editor!');
          } else {
-             editor.registerToolbar((selectedItems) => this.setSelectedItems(selectedItems));
--            this.setState({editor});
-+            this.setState({ editor });
-         }
-     }
- 
-     componentWillUnmount() {
--        this.setState({editor: null});
-+        this.setState({ editor: null });
-     }
+@@ -118,11 +123,11 @@ export default class RichToolbar extends Component {
+     };
  
      setSelectedItems(items) {
--        const {selectedItems, editor} = this.state;
-+        const { selectedItems, editor } = this.state;
-         if (editor && items !== selectedItems) {
+-        const {selectedItems} = this.state;
++        const { selectedItems } = this.state;
+         if (this.editor && items !== selectedItems) {
              this.setState({
                  items,
 -                data: this.state.actions.map((action) => ({action, selected: items.includes(action)})),
@@ -285,36 +280,40 @@ index c170cca..b3194c5 100755
              });
          }
      }
-@@ -123,18 +123,21 @@ export default class RichToolbar extends Component {
+@@ -140,7 +145,7 @@ export default class RichToolbar extends Component {
+     }
+ 
+     _getButtonIcon(action) {
+-        const {iconMap} = this.props;
++        const { iconMap } = this.props;
+         if (iconMap && iconMap[action]) {
+             return iconMap[action];
+         } else {
+@@ -159,7 +164,7 @@ export default class RichToolbar extends Component {
      }
  
      _onPress(action) {
--        const {onPressAddImage, onInsertLink} = this.props;
--        const {editor} = this.state;
-+        const { onPressAddImage, onInsertLink } = this.props;
-+        const { editor } = this.state;
+-        const {onPressAddImage, onInsertLink, insertVideo} = this.props;
++        const { onPressAddImage, onInsertLink, insertVideo } = this.props;
+         const editor = this.editor;
          if (!editor) return;
  
-         switch (action) {
-             case actions.insertLink:
+@@ -168,6 +173,9 @@ export default class RichToolbar extends Component {
                  if (onInsertLink) return onInsertLink();
              case actions.setBold:
-+            case actions.setColor:
              case actions.setItalic:
-             case actions.insertBulletsList:
-             case actions.insertOrderedList:
-             case actions.checkboxList:
++            case actions.setColor:
 +            case actions.checkDone:
 +            case actions.scrollMore:
-             case actions.setUnderline:
-             case actions.heading1:
-             case actions.heading2:
-@@ -169,32 +172,32 @@ export default class RichToolbar extends Component {
+             case actions.undo:
+             case actions.redo:
+             case actions.insertBulletsList:
+@@ -216,32 +224,32 @@ export default class RichToolbar extends Component {
      _defaultRenderAction(action, selected) {
          let that = this;
          const icon = that._getButtonIcon(action);
--        const {iconSize = 50, disabled} = that.props;
-+        const { iconSize = 50, disabled } = that.props;
+-        const {iconSize, iconGap, disabled, itemStyle} = that.props;
++        const { iconSize, iconGap, disabled, itemStyle } = that.props;
          const style = selected ? that._getButtonSelectedStyle() : that._getButtonUnselectedStyle();
          const tintColor = disabled
              ? that.props.disabledIconTint
@@ -327,18 +326,18 @@ index c170cca..b3194c5 100755
              <TouchableOpacity
                  key={action}
                  disabled={disabled}
--                style={[{width: iconSize, justifyContent: 'center'}, style]}
-+                style={[{ width: iconSize, justifyContent: 'center' }, style]}
+-                style={[{width: iconGap + iconSize}, styles.item, itemStyle, style]}
++                style={[{ width: iconGap + iconSize }, styles.item, itemStyle, style]}
                  onPress={() => that._onPress(action)}>
                  {icon ? (
                      typeof icon === 'function' ? (
--                        icon({selected, disabled, tintColor, iconSize})
-+                        icon({ selected, disabled, tintColor, iconSize })
+-                        icon({selected, disabled, tintColor, iconSize, iconGap})
++                        icon({ selected, disabled, tintColor, iconSize, iconGap })
                      ) : (
 -                        <Image
 -                            source={icon}
 -                            style={{
--                                tintColor: tintColor,
+-                                tintColor,
 -                                height: iconSize,
 -                                width: iconSize,
 -                            }}
@@ -347,7 +346,7 @@ index c170cca..b3194c5 100755
 +                            <Image
 +                                source={icon}
 +                                style={{
-+                                    tintColor: tintColor,
++                                    tintColor,
 +                                    height: iconSize,
 +                                    width: iconSize,
 +                                }}
@@ -356,97 +355,92 @@ index c170cca..b3194c5 100755
                  ) : null}
              </TouchableOpacity>
          );
-@@ -207,10 +210,11 @@ export default class RichToolbar extends Component {
+@@ -254,7 +262,7 @@ export default class RichToolbar extends Component {
      }
  
      render() {
--        const {style, disabled, children} = this.props;
-+        const { style, disabled, children } = this.props;
+-        const {style, disabled, children, flatContainerStyle} = this.props;
++        const { style, disabled, children, flatContainerStyle } = this.props;
          const vStyle = [styles.barContainer, style, disabled && this._getButtonDisabledStyle()];
          return (
              <View style={vStyle}>
-+                {children}
-                 <FlatList
-                     horizontal
-                     keyboardShouldPersistTaps={'always'}
-@@ -218,9 +222,8 @@ export default class RichToolbar extends Component {
+@@ -265,7 +273,7 @@ export default class RichToolbar extends Component {
                      data={this.state.data}
                      alwaysBounceHorizontal={false}
                      showsHorizontalScrollIndicator={false}
 -                    renderItem={({item}) => this._renderAction(item.action, item.selected)}
 +                    renderItem={({ item }) => this._renderAction(item.action, item.selected)}
+                     contentContainerStyle={flatContainerStyle}
                  />
--                {children}
-             </View>
-         );
-     }
+                 {children}
 diff --git a/node_modules/react-native-pell-rich-editor/src/const.js b/node_modules/react-native-pell-rich-editor/src/const.js
-index 915aa10..a44045e 100755
+index 60a72d7..ff6001d 100755
 --- a/node_modules/react-native-pell-rich-editor/src/const.js
 +++ b/node_modules/react-native-pell-rich-editor/src/const.js
-@@ -2,7 +2,7 @@ export const actions = {
+@@ -2,7 +2,9 @@ export const actions = {
      content: 'content',
  
      updateHeight: 'UPDATE_HEIGHT',
 -
 +    setColor:'color',
++    checkDone: 'checkDone',
++    scrollMore:'scrollMore',
      setBold: 'bold',
      setItalic: 'italic',
      setUnderline: 'underline',
-@@ -22,6 +22,8 @@ export const actions = {
-     insertBulletsList: 'unorderedList',
-     insertOrderedList: 'orderedList',
-     checkboxList: 'checkboxList',
-+    checkDone: 'checkDone',
-+    scrollMore:'scrollMore',
-     insertLink: 'link',
-     insertText: 'text',
-     insertHTML: 'html',
-@@ -62,4 +64,5 @@ export const messages = {
+@@ -53,6 +55,7 @@ export const actions = {
+     setEditorHeight: 'SET_EDITOR_HEIGHT',
+     setFooterHeight: 'SET_FOOTER_HEIGHT',
+     setPlatform: 'SET_PLATFORM',
++    
+ };
+ 
+ export const messages = {
+@@ -69,4 +72,5 @@ export const messages = {
      LINK_TOUCHED: 'LINK_TOUCHED',
      SELECTED_TEXT_CHANGED: 'SELECTED_TEXT_CHANGED',
      OFFSET_HEIGHT: 'OFFSET_HEIGHT',
-+    SNAP_FULL: 'SNAP_FULL',
++    SNAP_FULL: 'SNAP_FULL'
  };
 diff --git a/node_modules/react-native-pell-rich-editor/src/editor.js b/node_modules/react-native-pell-rich-editor/src/editor.js
-index d42e29b..331feb6 100644
+index 11e7729..c6d244a 100644
 --- a/node_modules/react-native-pell-rich-editor/src/editor.js
 +++ b/node_modules/react-native-pell-rich-editor/src/editor.js
-@@ -166,6 +166,18 @@ function createHTML(options = {}) {
-             orderedList: { state: function() { return queryCommandState('insertOrderedList'); }, result: function() { return exec('insertOrderedList'); }},
-             unorderedList: { state: function() { return queryCommandState('insertUnorderedList'); },result: function() { return exec('insertUnorderedList'); }},
-             code: { result: function() { return exec(formatBlock, '<pre>'); }},
+@@ -282,6 +282,18 @@ function createHTML(options = {}) {
+                     }
+                 }
+             },
 +            color: { 
 +                result: function(color) { 
-+                    var selection = window.getSelection();
-+                    var range = document.createRange();
-+                    range.setStart(anchorNode, 0);
-+                    range.setEnd(focusNode, anchorNode.length);
-+                    selection.addRange(range);
++                    // var selection = window.getSelection();
++                    // var range = document.createRange();
++                    // range.setStart(anchorNode, 0);
++                    // range.setEnd(focusNode, anchorNode.length);
++                    // selection.addRange(range);
 +                    exec('forecolor',color);
-+                    selection.removeAllRanges();
++                    // selection.removeAllRanges();
 +                    return;  
 +                }
 +            },
-             line: { result: function() { return exec('insertHorizontalRule'); }},
-             link: {
-                 result: function(data) {
-@@ -205,6 +217,14 @@ function createHTML(options = {}) {
+             image: {
+                 result: function(url, style) {
+                     if (url){
+@@ -309,6 +321,14 @@ function createHTML(options = {}) {
                      }
                  }
              },
 +            scrollMore: {
 +                result: function(offset) {
-+                    if(focusNode.parentNode.offsetTop > 240) {
++                    if(focusNode.parentNode.offsetTop > 240 || anchorOffset > 100) {
 +                        document.documentElement.scroll({ top: document.documentElement.scrollTop
 +                            + offset, behavior: 'smooth' })
 +                    }
 +                }
 +            },
              checkboxList: {
+                 state: function(){return checkboxNode(window.getSelection().anchorNode)},
                  result: function() {
-                     var pNode;
-@@ -223,6 +243,17 @@ function createHTML(options = {}) {
+@@ -330,6 +350,17 @@ function createHTML(options = {}) {
                      }
                  }
              },
@@ -464,9 +458,9 @@ index d42e29b..331feb6 100644
              content: {
                  setDisable: function(dis){ this.blur(); editor.content.contentEditable = !dis},
                  setHtml: function(html) { editor.content.innerHTML = html; },
-@@ -421,4 +452,4 @@ function createHTML(options = {}) {
+@@ -559,4 +590,4 @@ function createHTML(options = {}) {
  }
  
  const HTML = createHTML();
--export {HTML, createHTML};
-+export { HTML, createHTML };
+-export {HTML, createHTML, getContentCSS};
++export { HTML, createHTML, getContentCSS };

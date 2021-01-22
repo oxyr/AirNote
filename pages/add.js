@@ -252,7 +252,7 @@ class Add extends Component {
         if (this.state.title != '' || this.state.title != 'No Title') {
             title = "<h1 style=\"text-align:center\">" + this.state.title + "</h1>"
         }
-        var footer = `<div style=\"text-align:center;font-size:12px;margin-top:100px;\">
+        var footer = `<div style=\"text-align:center;font-size:12px;margin-top:100px;margin-bottom:20px;\">
         Published by <span style=\"color:#4BBBFA;
         text-decoration: none;font-size:16px\">AirNote</span></div>`;
         let options = {
@@ -395,7 +395,7 @@ class Add extends Component {
                                 alignItems: "center",
                                 width: 20,
                                 height: 20,
-                                tintColor: theme !== 'dark' ? actions.mainColor : 'white',
+                                tintColor: this.state.Mode !== 'dark' ? actions.mainColor : 'white',
                                 marginStart: 20
                             }}></Image>
                         <Text style={{
@@ -447,7 +447,7 @@ class Add extends Component {
                                 alignItems: "center",
                                 width: 20,
                                 height: 20,
-                                tintColor: theme !== 'dark' ? actions.mainColor : 'white',
+                                tintColor: this.state.Mode !== 'dark' ? actions.mainColor : 'white',
                                 marginStart: 20
                             }}></Image>
                         <Text style={{
@@ -487,7 +487,7 @@ class Add extends Component {
                                 alignItems: "center",
                                 width: 20,
                                 height: 20,
-                                tintColor: theme !== 'dark' ? actions.mainColor : 'white',
+                                tintColor: this.state.Mode !== 'dark' ? actions.mainColor : 'white',
                                 marginStart: 20
                             }}></Image>
                         <Text style={{
@@ -1006,7 +1006,8 @@ class Add extends Component {
                         disabledIconTint={'#8b8b8b'}
                         onPressAddImage={that.onPressAddImage.bind(this)}
                         onInsertLink={that.onInsertLink.bind(this)}
-                        iconSize={40} // default 50
+                        iconSize={20} // default 50
+                        iconGap={20}
                         actions={[
                             // 'insertVideo',
                             'fontStyle',
@@ -1016,7 +1017,7 @@ class Add extends Component {
                             actions.heading4,
                             actions.removeFormat,
                             // 'insertEmoji',
-                            'insertHTML',
+                            // 'insertHTML',
                             ...defaultActions,
                         ]} // default defaultActions
                         iconMap={{
@@ -1037,7 +1038,21 @@ class Add extends Component {
 
                             ),
                             insertEmoji: phizIcon,
-                            [actions.checkDone]: bulletIcon,
+                            [actions.checkDone]: ({ tintColor }) => (
+                                <View style={{
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}>
+                                    <Image
+                                        source={bulletIcon}
+                                        style={{
+                                            tintColor: tintColor,
+                                            height: 40,
+                                            width: 40,
+                                        }}
+                                    />
+                                </View>
+                            ),
                             fontStyle: ({ tintColor }) => (
                                 <Text style={[styles.tib, { color: tintColor, fontSize: 18 }]}>Aa</Text>
                             ),
