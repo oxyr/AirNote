@@ -301,7 +301,7 @@ class Add extends Component {
         this.share(file);
     }
 
-    async grantPermission() {
+    async grantPermission(type) {
         if (Platform.OS == 'android') {
             const granted = await PermissionsAndroid.requestMultiple(
                 [PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
@@ -311,11 +311,33 @@ class Add extends Component {
                 granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED) {
                 console.log("PermissionsAndroid success");
                 var that = this;
-                this.setState({
-                    showNavPanel: false
-                }, () => {
-                    that.createPDF(false)
-                })
+                if (type === 'image') {
+                    this.setState({
+                        showNavPanel: false
+                    }, () => {
+                        // that.createPDF(true) 
+                        EasyLoading.show('Processing...');
+                        if (this.state.title != '' || this.state.title != 'No Title') {
+                            title = "<h3 style=\"text-align:center\">" + this.state.title + "</h3>";
+                        } else {
+                            title = "";
+                        }
+                        var footer = `<div style=\"text-align:center;width:100%;font-size:12px;margin-top:100px\">
+                        Published by <span style=\"color:#4BBBFA;
+                        text-decoration: none;font-size:16px\">AirNote</span></div>`;
+                        that.richText.current.setContentHTML(title + this.state.content + footer);
+                        setTimeout(() => {
+                            that.richText.current.snapFullShot()
+                        }, 1500)
+                    })
+                } else {
+                    this.setState({
+                        showNavPanel: false
+                    }, () => {
+                        that.createPDF(false)
+                    })
+                }
+
             } else {
                 console.log("PermissionsAndroid error")
                 alert("Please grant your Storage Permission!")
@@ -427,8 +449,8 @@ class Add extends Component {
                     }}
                         onPress={() => {
                             var that = this;
-
-                            that.grantPermission();
+                            Keyboard.dismiss();
+                            that.grantPermission('pdf');
                         }}>
                         <Image
                             source={require('../assets/icon_pdf.png')}
@@ -465,24 +487,8 @@ class Add extends Component {
                         onPress={() => {
                             var that = this;
                             Keyboard.dismiss();
-                            this.setState({
-                                showNavPanel: false
-                            }, () => {
-                                // that.createPDF(true) 
-                                EasyLoading.show('Processing...');
-                                if (this.state.title != '' || this.state.title != 'No Title') {
-                                    title = "<h3 style=\"text-align:center\">" + this.state.title + "</h3>";
-                                }else {
-                                    title = "";
-                                }
-                                var footer = `<div style=\"text-align:center;width:100%;font-size:12px;margin-top:100px\">
-                                Published by <span style=\"color:#4BBBFA;
-                                text-decoration: none;font-size:16px\">AirNote</span></div>`;
-                                that.richText.current.setContentHTML(title + this.state.content + footer);
-                                setTimeout(() => {
-                                    that.richText.current.snapFullShot()
-                                }, 1500)
-                            })
+                            that.grantPermission('image');
+
                         }}>
                         <Image
                             source={require('../assets/icon_image.png')}
@@ -518,11 +524,8 @@ class Add extends Component {
                     }}
                         onPress={() => {
                             var that = this;
-                            this.setState({
-                                showNavPanel: false
-                            }, () => {
-                                that.createPDF()
-                            })
+                            Keyboard.dismiss();
+                            that.grantPermission('image');
                         }}>
                         <Image
                             source={require('../assets/icon_share.png')}
@@ -609,7 +612,7 @@ class Add extends Component {
         // editor.focusContentEditor();
         // }
         if (this.autoShare) {
-            this.createPDF();
+            this.grantPermission('image');
         }
     }
 
@@ -665,21 +668,21 @@ class Add extends Component {
             });
             scrollPosition = data.data.offset + 5;
         } else {
-            if(data.data.offset < 30 && data.data.lineOff > 100 ) {
+            if (data.data.offset < 30 && data.data.lineOff > 100) {
                 this.scrollRef.scrollTo({
                     x: 0, y:
-                    data.data.lineOff + 20, animated: true
+                        data.data.lineOff + 20, animated: true
                 });
                 scrollPosition = data.data.lineOff + 20;
 
-            } else if(data.data.offset > 30){
+            } else if (data.data.offset > 30) {
                 this.scrollRef.scrollTo({
                     x: 0, y:
-                    data.data.offset - 20, animated: true
+                        data.data.offset - 20, animated: true
                 });
                 scrollPosition = data.data.offset - 20;
             }
-            
+
         }
         this.setState({
             scrollToPosition: scrollPosition + 30

@@ -55,7 +55,6 @@ class Home extends Component {
 
     }
     static navigationOptions = ({ route, navigation }) => {
-        const navStyle = actions.getNavStyle();
         const { params = {} } = route;
         return {
             headerTitle: "Documents",
@@ -168,7 +167,8 @@ class Home extends Component {
         } else if (Mode == 'light') {
             contentStyle = this.createContentStyle('light');
         } else  {
-            contentStyle = this.createContentStyle(Appearance.getColorScheme())
+            contentStyle = this.createContentStyle(Appearance.getColorScheme());
+            Mode = 'auto';
         }
         this.setState({
             contentStyle,

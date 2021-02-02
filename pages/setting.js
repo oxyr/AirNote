@@ -106,6 +106,12 @@ class Setting extends Component {
             that.setState({
                 contentStyle
             });
+        } else {
+            Mode = 'auto';
+            contentStyle = this.createContentStyle('light');
+            that.setState({
+                contentStyle
+            });
         }
         navStyle = actions.getNavStyle(Mode);
         this.props.navigation.setParams({
