@@ -896,7 +896,7 @@ class Add extends Component {
             <SafeAreaView style={[styles.container, themeBg]}>
                 <StatusBar
                     backgroundColor={backgroundColor}
-                    barStyle={theme !== 'dark' ? 'dark-content' : 'light-content'}
+                    barStyle={this.state.Mode !== 'dark' ? 'dark-content' : 'light-content'}
                 />
                 <InsertLinkModal
                     placeholderColor={placeholderColor}

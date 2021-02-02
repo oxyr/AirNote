@@ -154,7 +154,7 @@ class Setting extends Component {
             <SafeAreaView style={{ backgroundColor: backgroundColor, flex: 1, }}>
                 <StatusBar
                     backgroundColor={backgroundColor}
-                    barStyle={theme !== 'dark' ? 'dark-content' : 'light-content'}
+                    barStyle={this.state.Mode !== 'dark' ? 'dark-content' : 'light-content'}
                 />
                 <ScrollView style={{
                     flex: 1,
