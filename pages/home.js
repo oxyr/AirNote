@@ -534,9 +534,11 @@ class Home extends Component {
                 </View>
                 <View style={{ marginStart: 0, flex: 1, justifyContent: "center", position: "relative", elevation: 1000 }}>
                     <Text style={{
-                        paddingLeft: 22, paddingRight: 22,
-                        color: color, fontSize: 16, marginTop: 0, height: 30, textAlign: "center"
-                    }}>{item.title && item.title.length > limit ? item.title.substring(0, limitCount) + "..." :
+                        paddingLeft: 8, paddingRight: 8,
+                        color: color, fontSize: 16, marginTop: 0, height: 30, textAlign: "center",
+                        
+                    }}
+                    >{item.title && item.title.length > limit ? item.title.substring(0, limitCount) + "..." :
                         item.title}</Text>
                     <Text style={{
                         color: itemDateColor, fontSize: 14, marginTop: 0, marginBottom: 0, height: 30
@@ -672,11 +674,12 @@ class Home extends Component {
                         width: 1,
                         height: 5,
                     },
+                    elevation:4,
                     shadowOpacity: 0.35,
                     shadowRadius: 5,
                     position: "absolute",
                     right: 20,
-                    top: Platform.select({ android: 5, ios: (actions.isIphoneX() ? 88 : 20) + 5 }),
+                    top: Platform.select({ android: 36, ios: (actions.isIphoneX() ? 88 : 20) + 5 }),
                 }}>
                     <Text style={{
                         marginTop: 20,
@@ -859,6 +862,7 @@ class Home extends Component {
                 position: "absolute",
                 bottom: 0,
                 zIndex: 200000,
+                elevation:200000,
                 backgroundColor: "transparent",
                 height: 180,
                 width: "100%",
@@ -886,6 +890,7 @@ class Home extends Component {
                     },
                     shadowOpacity: 0.35,
                     shadowRadius: 5,
+                    elevation:4,
                     position: "absolute",
                     left: 10,
                     bottom: 40,
@@ -974,6 +979,7 @@ class Home extends Component {
                 position: "absolute",
                 bottom: 0,
                 zIndex: 200000,
+                elevation:20000,
                 backgroundColor: "transparent",
                 height: height,
                 width: "100%",
@@ -1002,6 +1008,7 @@ class Home extends Component {
                     },
                     shadowOpacity: 0.35,
                     shadowRadius: 5,
+                    elevation:4,
                     position: "absolute",
                     left: 10,
                     bottom: 40,
@@ -1265,8 +1272,8 @@ class Home extends Component {
                 <View
                     style={{
                         position: "absolute",
-                        bottom: actions.isIphoneX() ? 16 + 49 + 34 : 16 + 49, right: 20, zIndex: 2000,
-                        elevation:2000
+                        bottom: actions.isIphoneX() ? 16 + 49 + 34 : 16 + 49, right: 20, zIndex: 100,
+                        elevation:100
                     }}
                 >
                     <TouchableOpacity style={{
@@ -1280,7 +1287,7 @@ class Home extends Component {
                         elevation: 5,
                         justifyContent: "center",
                         alignItems: "center",
-                        elevation: 3,
+                        elevation: 4,
                         height: 50,
                         width: 50,
                         backgroundColor: "transparent",

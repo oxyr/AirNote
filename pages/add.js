@@ -17,6 +17,7 @@ import {
     Animated,
     Easing,
     FlatList,
+    PermissionsAndroid,
     SafeAreaView
 } from "react-native";
 import { HeaderBackButton, Header, HeaderHeightContext } from "@react-navigation/stack";
@@ -65,12 +66,12 @@ class Add extends Component {
         this.Mode = route.params?.Mode ?? "auto";
         const theme = props.theme || Appearance.getColorScheme();
         contentStyle = that.createContentStyle(theme);
-        if(this.Mode != 'auto') {
+        if (this.Mode != 'auto') {
             contentStyle = that.createContentStyle(this.Mode);
         }
         that.state = {
             theme: theme, contentStyle, emojiVisible: false, disabled: false,
-            Mode:this.Mode == 'auto'?theme:this.Mode,
+            Mode: this.Mode == 'auto' ? theme : this.Mode,
             keyboardOffset: 0,
             title: "",
             initFlag: true,
@@ -83,6 +84,7 @@ class Add extends Component {
             scrollViewContentHeight: 0,
             showSubRichTool: false,
             toolMarginTop: 0,
+            scrollToPosition: 0,
             fontAction: [
                 { types: "bold", bgColor: "transparent", icon: require('../assets/icon_format_bold.png') },
                 { types: "italic", bgColor: "transparent", icon: require('../assets/icon_format_italic.png') },
@@ -96,7 +98,7 @@ class Add extends Component {
                 { types: "color", bgColor: "#56A7F6" },
                 { types: "color", bgColor: "#7A7EC8" }
             ],
-            panelViewY: new Animated.Value(0),
+            panelViewY: new Animated.Value(50),
         };
         this.note_id = route.params?.aid ?? "";
         this.autoShare = route.params?.share ?? false;
@@ -156,7 +158,7 @@ class Add extends Component {
         Animated.timing(
             this.state.panelViewY,
             {
-                toValue: -50,
+                toValue: 0,
                 duration: 300,   //动画时长300毫秒
                 useNativeDriver: true
             }
@@ -166,7 +168,7 @@ class Add extends Component {
         Animated.timing(
             this.state.panelViewY,
             {
-                toValue: 0,
+                toValue: 50,
                 duration: 300,   //动画时长300毫秒
                 useNativeDriver: true
             }
@@ -223,9 +225,9 @@ class Add extends Component {
         this.setState({
             keyboardOffset: event.endCoordinates.height,
         })
-        console.log("event",height,event)
+        console.log("event", height, event, this.state.scrollToPosition)
         if (!this.state.isTitleEdit) {
-            this.richText?.current?.scrollMore(140);
+            this.richText?.current?.scrollMore(240);
         }
         // if (this.state.editorHeight - event.endCoordinates.height > this.state.scrollViewHeight) {
         //     this.scrollRef && this.scrollRef.scrollToEnd()
@@ -299,6 +301,35 @@ class Add extends Component {
         this.share(file);
     }
 
+    async grantPermission() {
+        if (Platform.OS == 'android') {
+            const granted = await PermissionsAndroid.requestMultiple(
+                [PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE]
+            );
+            if (granted[PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED &&
+                granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED) {
+                console.log("PermissionsAndroid success");
+                var that = this;
+                this.setState({
+                    showNavPanel: false
+                }, () => {
+                    that.createPDF(false)
+                })
+            } else {
+                console.log("PermissionsAndroid error")
+                alert("Please grant your Storage Permission!")
+            }
+        } else {
+            var that = this;
+            this.setState({
+                showNavPanel: false
+            }, () => {
+                that.createPDF(false)
+            })
+        }
+    }
+
     share = async (file) => {
         EasyLoading.dismiss();
         RNFS.readFile(file.filePath, 'base64')
@@ -306,14 +337,27 @@ class Add extends Component {
 
                 // content 为base64数据
                 console.log("content", file.filePath)
-                const shareOptions = {
-                    title: "NoteLine Share",
-                    // subject: shareMessage,
-                    // message: shareMessage,
-                    // failOnCancel: false,
-                    // saveToFiles: true,
-                    urls: [file.filePath]
-                };
+                var shareOptions;
+                if (Platform.OS === 'ios') {
+                    shareOptions = {
+                        title: "NoteLine Share",
+                        // subject: shareMessage,
+                        // message: shareMessage,
+                        // failOnCancel: false,
+                        // saveToFiles: true,
+                        urls: [file.filePath]
+                    };
+                } else {
+                    shareOptions = {
+                        title: "NoteLine Share",
+                        subject: this.state.title ? this.state.title : "Document",
+                        message: this.state.title ? this.state.title : "Document",
+                        // failOnCancel: false,
+                        // saveToFiles: true,
+                        url: "file:///" + file.filePath
+                    };
+                }
+
                 Share.open(shareOptions)
                     .then(res => {
                         console.warn("ok", res);
@@ -353,7 +397,7 @@ class Add extends Component {
                 }}>
                 <Animated.View style={{
                     backgroundColor: panelBg,
-                    width: "46%",
+                    width: "50%",
                     borderRadius: 10,
                     shadowColor: "#000",
                     shadowOffset: {
@@ -363,8 +407,9 @@ class Add extends Component {
                     shadowOpacity: 0.35,
                     shadowRadius: 5,
                     position: "absolute",
+                    elevation: 4,
                     right: 20,
-                    top: Platform.select({ android: 5, ios: (actionss.isIphoneX() ? 88 : 20) + 5 }),
+                    top: Platform.select({ android: 44, ios: (actionss.isIphoneX() ? 88 : 20) + 5 }),
                 }}>
                     <Text style={{
                         marginTop: 20,
@@ -382,11 +427,8 @@ class Add extends Component {
                     }}
                         onPress={() => {
                             var that = this;
-                            this.setState({
-                                showNavPanel: false
-                            }, () => {
-                                that.createPDF(false)
-                            })
+
+                            that.grantPermission();
                         }}>
                         <Image
                             source={require('../assets/icon_pdf.png')}
@@ -429,12 +471,14 @@ class Add extends Component {
                                 // that.createPDF(true) 
                                 EasyLoading.show('Processing...');
                                 if (this.state.title != '' || this.state.title != 'No Title') {
-                                    title = "<h3 style=\"text-align:center\">" + this.state.title + "</h3>"
+                                    title = "<h3 style=\"text-align:center\">" + this.state.title + "</h3>";
+                                }else {
+                                    title = "";
                                 }
                                 var footer = `<div style=\"text-align:center;width:100%;font-size:12px;margin-top:100px\">
                                 Published by <span style=\"color:#4BBBFA;
                                 text-decoration: none;font-size:16px\">AirNote</span></div>`;
-                                that.richText.current.setContentHTML(title+this.state.content + footer);
+                                that.richText.current.setContentHTML(title + this.state.content + footer);
                                 setTimeout(() => {
                                     that.richText.current.snapFullShot()
                                 }, 1500)
@@ -592,16 +636,45 @@ class Add extends Component {
 
     handleKeyUp = data => {
         // console.log('KeyUp:', data);
+
     };
 
     handleKeyDown = data => {
-        // console.log('KeyDown:', data);
+        console.log('KeyDown:', data, this.state.scrollToPosition);
+        if (data.key == 'Enter') {
+            this.scrollRef.scrollTo({ x: 0, y: this.state.scrollToPosition + 30, animated: true })
+            this.setState({
+                scrollToPosition: this.state.scrollToPosition + 30
+            })
+        }
     };
 
     handleSnap = (data) => {
-
         this.richText.current.setContentHTML(this.state.content);
         this.share(data);
+    };
+
+    onTopOffSet = (data) => {
+        var that = this;
+        var scrollPosition = 0;
+        console.log("offsetTop:", data.data.offset, this.state.keyboardOffset, data.data.offset - this.state.keyboardOffset);
+        if (data.data.offset > this.state.keyboardOffset) {
+            this.scrollRef.scrollTo({
+                x: 0, y:
+                    data.data.offset + 5, animated: true
+            });
+            scrollPosition = data.data.offset + 5;
+        } else {
+            this.scrollRef.scrollTo({
+                x: 0, y:
+                    data.data.offset - 20, animated: true
+            });
+            scrollPosition = data.data.offset - 20;
+        }
+        this.setState({
+            scrollToPosition: scrollPosition + 30
+        })
+
     };
 
     handleMessage = ({ type, id, data }) => {
@@ -628,6 +701,7 @@ class Add extends Component {
 
     handleFocus = () => {
         this.editorFocus = true;
+
     };
 
     handleBlur = () => {
@@ -763,12 +837,17 @@ class Add extends Component {
         var offsetY = e.nativeEvent.contentOffset.y; //滑动距离
         var contentSizeHeight = e.nativeEvent.contentSize.height; //scrollView contentSize高度
         var oriageScrollHeight = e.nativeEvent.layoutMeasurement.height; //scrollView高度
-        // console.log('ScrollView', contentSizeHeight, oriageScrollHeight)
+        console.log('_contentViewScroll', contentSizeHeight, oriageScrollHeight, offsetY)
         // contentSizeHeight - oriageScrollHeight
         // if (offsetY + oriageScrollHeight >= contentSizeHeight) {
         //     this.scrollRef.scrollToEnd();
         //     console.log('到底部事件')
         // }
+        this.setState({
+            scrollToPosition: e.nativeEvent.contentOffset.y
+        }, () => {
+
+        });
     }
 
     renderFontAction(item) {
@@ -804,7 +883,7 @@ class Add extends Component {
             , panelBg, panelBtnBg, lineColor, placeholderColor } = contentStyle;
         const themeBg = { backgroundColor };
         return (
-            <SafeAreaView style={[styles.container,themeBg]}>
+            <SafeAreaView style={[styles.container, themeBg]}>
                 <StatusBar
                     backgroundColor={backgroundColor}
                     barStyle={theme !== 'dark' ? 'dark-content' : 'light-content'}
@@ -816,32 +895,31 @@ class Add extends Component {
                     onDone={that.onLinkDone.bind(this)}
                     ref={that.linkModal}
                 />
-                <View style={[styles.scroll, themeBg], { flex: 1 }}>
-                    {/* <ScrollView style={[styles.scroll, themeBg]}
+                {/* <View style={[styles.scroll, themeBg], { flex: 1 }}> */}
+                <ScrollView style={[styles.scroll, themeBg]}
                     ref={(ref) => this.scrollRef = ref}
                     keyboardDismissMode={'none'}
                     onMomentumScrollEnd={this._contentViewScroll.bind(this)}
+                    onScroll={(event) => {
+
+                        // console.log("onScroll",event.nativeEvent.contentOffset.y);
+                    }}
                     onContentSizeChange={(contentWidth, contentHeight) => {
                         // 
                         console.log("scrollViewContentHeight:", contentHeight);
-                        // this.scrollRef.scrollToEnd()
-                        this.setState({
-                            scrollViewContentHeight: contentHeight
-                        })
+                        // this.setState({
+                        //     scrollViewContentHeight: contentHeight
+                        // })
 
                     }}
                     onLayout={(event) => {
                         var that = this;
                         const { x, y, height, width } = event.nativeEvent.layout;
                         console.log("scrollViewHeight:", height);
-                        this.setState({
-                            scrollViewHeight: height
-                        }, () => {
 
-                        });
 
-                    }}>*/}
-                    <View style={{ justifyContent: "center", alignItems: "center",}}>
+                    }}>
+                    <View style={{ justifyContent: "center", alignItems: "center", }}>
                         {this.state.isTitleEdit ? (<Input
                             containerStyle={{
                                 width: "100%",
@@ -923,7 +1001,7 @@ class Add extends Component {
                         onKeyPress={() => { alert(1) }}
                         disabled={disabled}
                         editorStyle={contentStyle} // default light style
-                        containerStyle={[themeBg],{padding:0}}
+                        containerStyle={[themeBg], { padding: 0 }}
                         ref={this.richText}
                         style={[styles.rich, themeBg,]}
                         placeholder={'Please input your note'}
@@ -936,21 +1014,24 @@ class Add extends Component {
                         onKeyDown={that.handleKeyDown.bind(this)}
                         onMessage={that.handleMessage.bind(this)}
                         onSnapFull={that.handleSnap.bind(this)}
+                        onTopOffSet={that.onTopOffSet.bind(this)}
                         onFocus={that.handleFocus.bind(this)}
                         onBlur={that.handleBlur.bind(this)}
                         pasteAsPlainText={true}
                     />
-                    {/* </ScrollView> */}
-                </View>
+                </ScrollView>
+                {/* </View> */}
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={{ marginTop: 0 }} keyboardVerticalOffset={89}>
                     {this.state.showSubRichTool ? (<Animated.View style={[themeBg, {
                         height: 55,
-                        position: "absolute",
-                        top: 0,
+                        // position: "absolute",
+                        // top: this.state.panelViewY,
                         alignItems: 'center',
                         width,
                         flexDirection: "row",
+                        zIndex: 20000,
+                        elevation: 20000,
                         transform: [{ translateY: this.state.panelViewY }]
                     }]}>
                         <FlatList
@@ -998,7 +1079,11 @@ class Add extends Component {
                     </Animated.View>) : null}
 
                     <RichToolbar
-                        style={[styles.richBar, themeBg, { backgroundColor: panelBg }]}
+                        style={[styles.richBar, themeBg, {
+                            backgroundColor: panelBg,
+                            zIndex: 30000,
+                            elevation: 30000,
+                        }]}
                         editor={this.richText}
                         disabled={disabled}
                         iconTint={color}
@@ -1116,7 +1201,7 @@ const styles = StyleSheet.create({
     rich: {
         minHeight: 300,
         paddingStart: 5,
-        paddingEnd:5,
+        paddingEnd: 5,
         flex: 1,
     },
     richBar: {
