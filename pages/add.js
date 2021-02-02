@@ -665,11 +665,21 @@ class Add extends Component {
             });
             scrollPosition = data.data.offset + 5;
         } else {
-            this.scrollRef.scrollTo({
-                x: 0, y:
+            if(data.data.offset < 30 && data.data.lineOff > 100 ) {
+                this.scrollRef.scrollTo({
+                    x: 0, y:
+                    data.data.lineOff + 20, animated: true
+                });
+                scrollPosition = data.data.lineOff + 20;
+
+            } else if(data.data.offset > 30){
+                this.scrollRef.scrollTo({
+                    x: 0, y:
                     data.data.offset - 20, animated: true
-            });
-            scrollPosition = data.data.offset - 20;
+                });
+                scrollPosition = data.data.offset - 20;
+            }
+            
         }
         this.setState({
             scrollToPosition: scrollPosition + 30
