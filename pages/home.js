@@ -50,6 +50,7 @@ class Home extends Component {
             viewType: 1,
             isChoice: false,
             checklist: [],
+            titleList:[],
             checkedCount: 0
         };
 
@@ -370,7 +371,8 @@ class Home extends Component {
     loadData() {
         var that = this;
         var datalist = [];
-        var checklist = []
+        var checklist = [];
+        var titleList = [];
         realm.current((err, context) => {
             try {
                 if (this.state.sort == 1) {
@@ -383,6 +385,7 @@ class Home extends Component {
                         datalist.push(res[item]);
                         var ck = { id: res[item].id, check: false, };
                         checklist.push(ck);
+                        titleList.push(res[item].title);
                     }
                 }
                 console.log("home realm list", that.state.documents)
@@ -392,6 +395,7 @@ class Home extends Component {
                 // that.setState({documents:datalist});
                 that.setState({
                     documents: datalist, checklist: checklist,
+                    titleList:titleList,
                     checkedCount: 0
                 }, () => {
                     console.log("reload")
@@ -538,12 +542,19 @@ class Home extends Component {
                         color: color, fontSize: 16, marginTop: 0, height: 30, textAlign: "center",
                         
                     }}
-                    >{item.title && item.title.length > limit ? item.title.substring(0, limitCount) + "..." :
-                        item.title}</Text>
+                    numberOfLines={1}
+                    onTextLayout={(event)=>{
+                        console.log("text width",event.nativeEvent.lines[0].width);
+                        if(event.width > (width / 2 - 20)/2) {
+                            console.log(".....")
+                        }
+                    }}>{this.state.titleList[index]}{/*item.title && item.title.length > limit ? item.title.substring(0, limitCount) + "..." :
+                        item.title*/}</Text>
                     <Text style={{
                         color: itemDateColor, fontSize: 14, marginTop: 0, marginBottom: 0, height: 30
                         , textAlign: "center"
-                    }}>{moment(item.createTime).format("YYYY-MM-DD HH:mm")}</Text>
+                    }}
+                    >{moment(item.createTime).format("YYYY-MM-DD HH:mm")}</Text>
                 </View>
 
             </TouchableOpacity>
@@ -590,7 +601,8 @@ class Home extends Component {
                 </View>
 
                 <View style={{ marginStart: 0, flex: 1, position: "relative", elevation: 1000 }}>
-                    <Text style={{ color: color, fontSize: 18, marginTop: 10, height: 30, }}>{item.title && item.title.length > limit ? item.title.substring(0, limitCount) + "..." : item.title}</Text>
+                    <Text style={{ color: color, fontSize: 18, marginTop: 10, height: 30,paddingEnd:50 }} numberOfLines={1}>{this.state.titleList[index]}
+                    {/*item.title && item.title.length > limit ? item.title.substring(0, limitCount) + "..." : item.title*/}</Text>
                     <Text style={{ color: itemDateColor, fontSize: 14, marginTop: 4, marginBottom: 0, height: 30 }}>{moment(item.createTime).format("YYYY-MM-DD HH:mm:ss")}</Text>
                     {this.state.isChoice ? (<View style={{ position: "absolute", top: 26, right: 20, zIndex: 2000, }}><CheckBox
                         disabled={false}

@@ -403,7 +403,7 @@ index 60a72d7..ff6001d 100755
 +    SNAP_FULL: 'SNAP_FULL'
  };
 diff --git a/node_modules/react-native-pell-rich-editor/src/editor.js b/node_modules/react-native-pell-rich-editor/src/editor.js
-index 11e7729..c6d244a 100644
+index 11e7729..fb77521 100644
 --- a/node_modules/react-native-pell-rich-editor/src/editor.js
 +++ b/node_modules/react-native-pell-rich-editor/src/editor.js
 @@ -282,6 +282,18 @@ function createHTML(options = {}) {
@@ -440,13 +440,14 @@ index 11e7729..c6d244a 100644
              checkboxList: {
                  state: function(){return checkboxNode(window.getSelection().anchorNode)},
                  result: function() {
-@@ -330,6 +350,17 @@ function createHTML(options = {}) {
+@@ -330,6 +350,18 @@ function createHTML(options = {}) {
                      }
                  }
              },
 +            checkDone: {
 +                result: function() {
 +                    var selection = window.getSelection();
++                    selection.removeAllRanges();
 +                    var range = document.createRange();
 +                    range.setStart(anchorNode, 0);
 +                    range.setEnd(focusNode, anchorNode.length);
@@ -458,7 +459,7 @@ index 11e7729..c6d244a 100644
              content: {
                  setDisable: function(dis){ this.blur(); editor.content.contentEditable = !dis},
                  setHtml: function(html) { editor.content.innerHTML = html; },
-@@ -559,4 +590,4 @@ function createHTML(options = {}) {
+@@ -559,4 +591,4 @@ function createHTML(options = {}) {
  }
  
  const HTML = createHTML();
